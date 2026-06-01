@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #FFFFFF;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root { min-height: 100vh; }
+
+button { cursor: pointer; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.shake { animation: shake 0.4s ease; }
+
+/* Page transition */
+.page-wrap {
+  animation: pageFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-enter {
+  animation: pageFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pageFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Brief section sequential reveal */
+@keyframes sectionReveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.section-reveal {
+  animation: sectionReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.section-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Brief card reveal */
+.brief-reveal {
+  animation: briefReveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.brief-buttons-reveal {
+  animation: briefReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+@keyframes briefReveal {
+  from { opacity: 0; transform: scale(0.97) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Brief card border pulse */
+.brief-border-pulse {
+  animation: briefPulse 3s ease-in-out infinite;
+}
+@keyframes briefPulse {
+  0%, 100% { box-shadow: 0 0 0 0px transparent; }
+  50%       { box-shadow: 0 0 18px 2px var(--brief-pulse-color); }
+}
+
+/* Animated gradient border */
+@keyframes gbMove {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-border-wrap {
+  padding: 2px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a1a2e, #4a9aba, #b8e8f0, #ffffff, #4a9aba, #1a1a2e);
+  background-size: 300% 300%;
+  animation: gbMove 8s linear infinite;
+  box-shadow: 0 0 12px rgba(74,154,186,0.15);
+}
+
+.gradient-border-inner {
+  background: #FFFFFF;
+  border-radius: 10px;
+}
+
+/* Brief loading state */
+.brief-loading-bar {
+  width: 200px;
+  height: 2px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.brief-loading-fill {
+  height: 100%;
+  width: 40%;
+  border-radius: 2px;
+  animation: loadingSweep 1.2s ease-in-out infinite;
+}
+@keyframes loadingSweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}

@@ -1,0 +1,251 @@
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import Header from '../components/Header'
+
+const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
+const SERIF = '"BIZ UDMincho", serif'
+const MONO = 'ui-monospace, "SF Mono", Consolas, monospace'
+
+function BriefGrid({ brief, color }) {
+  const cellStyle = { background: color, padding: '12px 14px' }
+  const labelStyle = {
+    fontFamily: HN, fontSize: '8px', textTransform: 'uppercase',
+    letterSpacing: '0.1em', color: 'rgba(0,0,0,0.5)', marginBottom: '6px',
+  }
+  const valueStyle = { fontFamily: HN, fontSize: '12px', color: '#0A0A0A', lineHeight: 1.6, margin: 0 }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px', background: 'rgba(0,0,0,0.15)', borderRadius: '6px', overflow: 'hidden' }}>
+      <div style={cellStyle}>
+        <div style={labelStyle}>The Ask</div>
+        <p style={valueStyle}>{brief.ask}</p>
+      </div>
+      <div style={cellStyle}>
+        <div style={labelStyle}>Constraints</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {brief.constraints?.map((c) => (
+            <span key={c} style={{ background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.25)', padding: '2px 8px', borderRadius: '2px', fontFamily: HN, fontSize: '9px', color: '#0A0A0A' }}>{c}</span>
+          ))}
+        </div>
+      </div>
+      <div style={cellStyle}>
+        <div style={labelStyle}>Deliverables</div>
+        {brief.deliverables?.map((d, i) => (
+          <div key={i} style={{ fontFamily: HN, fontSize: '12px', color: '#0A0A0A', lineHeight: 1.8 }}>{d}</div>
+        ))}
+      </div>
+      <div style={cellStyle}>
+        <div style={labelStyle}>Target Audience</div>
+        <p style={valueStyle}>{brief.target_audience}</p>
+      </div>
+      <div style={cellStyle}>
+        <div style={labelStyle}>Brand Tone</div>
+        <p style={valueStyle}>{brief.brand_tone}</p>
+      </div>
+      <div style={cellStyle}>
+        <div style={labelStyle}>Art Direction</div>
+        <p style={{ ...valueStyle, fontStyle: 'italic', marginBottom: '10px' }}>{brief.art_direction}</p>
+        <div style={{ background: 'rgba(0,0,0,0.1)', padding: '7px 9px', borderRadius: '3px' }}>
+          <div style={{ fontFamily: HN, fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(0,0,0,0.5)', marginBottom: '4px' }}>
+            Midjourney / Firefly Prompt
+          </div>
+          <div style={{ fontFamily: MONO, fontSize: '9px', color: '#0A0A0A', lineHeight: 1.6 }}>
+            {brief.image_prompt}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function ProjectDetail() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const [briefExpanded, setBriefExpanded] = useState(false)
+
+  const { project } = location.state || {}
+
+  if (!project) {
+    return (
+      <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Header />
+        <div style={{ padding: '48px', fontFamily: HN, fontSize: '13px', color: '#999' }}>
+          No project data found.{' '}
+          <button onClick={() => navigate('/portfolio')} style={{ background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: HN, fontSize: '13px', color: '#0A0A0A' }}>
+            Back to portfolio
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const { brief, title, images, image, note, folderColor } = project
+  const categoryColor = folderColor || brief?.folder_color || '#60DDE6'
+  const allImages = images?.length ? images : image ? [image] : []
+  const displayTitle = title || brief?.title || 'Untitled Project'
+
+  return (
+    <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header />
+
+      {/* Back button */}
+      <div style={{ padding: '12px 48px 0' }}>
+        <button
+          onClick={() => navigate('/portfolio')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: HN, fontSize: '11px', color: '#999', padding: 0,
+          }}
+        >
+          ← Back to portfolio
+        </button>
+      </div>
+
+      {/* Zone 1: Metadata bar */}
+      <div style={{
+        borderBottom: '1px solid rgba(0,0,0,0.12)',
+        padding: '16px 48px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginTop: '12px',
+      }}>
+        <div>
+          <div style={{ fontFamily: SERIF, fontSize: '24px', fontWeight: 600, color: '#0A0A0A', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            {displayTitle}
+          </div>
+          <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', marginTop: '3px' }}>
+            {brief?.folder || '—'}
+          </div>
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: HN, fontSize: '10px', color: '#999', marginBottom: '2px' }}>test no.</div>
+          <div style={{ fontFamily: SERIF, fontSize: '28px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1 }}>
+            {brief?.brief_id || '01'}
+          </div>
+        </div>
+      </div>
+
+      {/* Zone 2: Main content grid */}
+      <div style={{
+        padding: '48px',
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '48px',
+        alignItems: 'start',
+        flex: 1,
+      }}>
+
+        {/* LEFT COLUMN */}
+        <div>
+          {/* Notes */}
+          <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', fontStyle: 'italic', marginBottom: '8px' }}>
+            notes:
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: '16px', lineHeight: 1.8, color: '#0A0A0A' }}>
+            {note || '—'}
+          </div>
+
+          {/* Rule */}
+          <div style={{ margin: '24px 0', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
+
+          {/* Brief summary */}
+          <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', fontStyle: 'italic', marginBottom: '8px' }}>
+            brief summary:
+          </div>
+          <div style={{ fontFamily: HN, fontSize: '13px', lineHeight: 1.7, color: '#0A0A0A' }}>
+            {brief?.summary}
+          </div>
+
+          {/* Expand toggle */}
+          <button
+            onClick={() => setBriefExpanded((prev) => !prev)}
+            style={{
+              marginTop: '20px',
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: HN,
+              fontSize: '11px',
+              color: '#0A0A0A',
+              textDecoration: 'underline',
+              padding: 0,
+              display: 'block',
+            }}
+          >
+            {briefExpanded ? 'Hide detailed brief ↑' : 'View detailed brief →'}
+          </button>
+
+          {/* Expandable detailed brief */}
+          <div style={{
+            maxHeight: briefExpanded ? '1200px' : '0',
+            opacity: briefExpanded ? 1 : 0,
+            overflow: 'hidden',
+            transition: 'max-height 0.3s ease, opacity 0.25s ease',
+          }}>
+            <div style={{
+              background: categoryColor,
+              borderRadius: '8px',
+              padding: '20px',
+              marginTop: '12px',
+            }}>
+              <BriefGrid brief={brief} color={categoryColor} />
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN — image gallery */}
+        <div>
+          {allImages.length === 0 ? (
+            <div style={{
+              border: '1.5px dashed rgba(0,0,0,0.2)',
+              borderRadius: '4px',
+              padding: '64px 24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <span style={{ fontFamily: HN, fontSize: '12px', color: '#999' }}>No images uploaded</span>
+            </div>
+          ) : (
+            <div>
+              {/* Primary image */}
+              <img
+                src={allImages[0]}
+                alt={displayTitle}
+                style={{
+                  width: '100%',
+                  display: 'block',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(0,0,0,0.08)',
+                  objectFit: 'cover',
+                  marginBottom: allImages.length > 1 ? '8px' : '0',
+                }}
+              />
+              {/* Additional images grid */}
+              {allImages.length > 1 && (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  {allImages.slice(1).map((img, i) => (
+                    <img
+                      key={i}
+                      src={img}
+                      alt={`${displayTitle} ${i + 2}`}
+                      style={{
+                        width: '100%',
+                        aspectRatio: '1 / 1',
+                        objectFit: 'cover',
+                        display: 'block',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
