@@ -232,12 +232,47 @@ export function UserProvider({ children }) {
     return { data, error }
   }
 
+  // Updates an existing project. project.images may already be a mix of
+  // real storage URLs (kept as-is) and new base64 selections (uploaded) —
+  // uploadImage() passes real URLs straight through.
+  async function updateSubmittedProject(projectId, project) {
+    if (!user || !projectId) return
+
+    const [coverUrl, extraUrls] = await Promise.all([
+      uploadImage(project.coverImage || project.image),
+      Promise.all((project.images || []).map(uploadImage)),
+    ])
+
+    const { data, error } = await supabase
+      .from('submitted_projects')
+      .update({
+        title: project.title,
+        discipline: project.discipline || project.brief?.discipline || project.brief?.folder || null,
+        description: project.note ?? project.description ?? '',
+        image_url: coverUrl,
+        images: extraUrls.filter(Boolean),
+        brief_data: project.brief || null,
+        meta: project.meta || null,
+        folder_color: project.folderColor || null,
+      })
+      .eq('id', projectId)
+      .select()
+      .single()
+
+    if (data) {
+      const mapped = rowToProject(data)
+      setSubmittedProjects((prev) => prev.map((p) => (p.id === projectId ? mapped : p)))
+      return { data: mapped, error }
+    }
+    return { data: null, error }
+  }
+
   return (
     <UserContext.Provider value={{
       user, savedBriefs, submittedProjects, loading,
       signUp, signIn, signOut, updateProfile,
       addSavedBrief, removeSavedBrief, addSubmittedProject, removeSubmittedProject,
-      setProjectHighlight,
+      updateSubmittedProject, setProjectHighlight,
     }}>
       {children}
     </UserContext.Provider>

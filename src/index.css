@@ -152,6 +152,74 @@ button { cursor: pointer; }
   opacity: 1;
 }
 
+/* ─── Mobile responsiveness ───────────────────────────────────────────────
+   Components mostly use inline styles, so these overrides use !important
+   to win over them at narrow widths. Applied via shared class names on the
+   relevant containers (see Header, Portfolio, ProjectDetail, PublicProfile,
+   Settings, AddProjectModal). */
+
+@media (max-width: 768px) {
+  /* Side-by-side sections (Portfolio/PublicProfile columns, ProjectDetail
+     content grid) stack vertically — project content keeps DOM order so it
+     still shows before secondary sidebar info. */
+  .responsive-columns {
+    flex-direction: column !important;
+    gap: 28px !important;
+    padding: 20px !important;
+  }
+  .responsive-columns > * {
+    width: 100% !important;
+  }
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    padding: 24px !important;
+  }
+  /* Lighter version for form field grids that shouldn't gain extra padding */
+  .responsive-grid-fields {
+    grid-template-columns: 1fr !important;
+  }
+  /* On a project detail page, show the images before the text notes when
+     stacked — the work itself is the priority. */
+  .responsive-grid-images-first {
+    order: -1;
+  }
+  .responsive-hero-name {
+    font-size: 32px !important;
+  }
+  .responsive-page-padding {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+
+  /* Header: drop the absolute positioning so left/center/right groups wrap
+     naturally instead of overlapping on narrow screens. */
+  .app-header {
+    height: auto !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 10px 12px !important;
+    row-gap: 8px;
+  }
+  .app-header-left,
+  .app-header-right {
+    position: static !important;
+    transform: none !important;
+  }
+  .app-header-center {
+    position: static !important;
+    transform: none !important;
+    order: -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .responsive-project-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Brief loading state */
 .brief-loading-bar {
   width: 200px;

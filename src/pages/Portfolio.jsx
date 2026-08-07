@@ -17,7 +17,7 @@ const socialLinkStyle = {
 
 function PlaceholderGrid() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+    <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
       {[0, 1, 2, 3].map((i) => (
         <div key={i} style={{
           background: 'rgba(0,0,0,0.08)', borderRadius: '12px', padding: '16px',
@@ -266,14 +266,14 @@ export default function Portfolio() {
     <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
-      <div style={{ display: 'flex', gap: '40px', padding: '40px', flex: 1 }}>
+      <div className="responsive-columns" style={{ display: 'flex', gap: '40px', padding: '40px', flex: 1 }}>
 
         {/* LEFT COLUMN */}
         <div style={{ flex: 1, minWidth: 0 }}>
 
           {/* Profile header */}
           <div style={{ marginBottom: '32px' }}>
-            <div style={{
+            <div className="responsive-hero-name" style={{
               fontFamily: HN, fontSize: '48px', fontWeight: 700,
               color: '#0A0A0A', textTransform: 'uppercase',
               lineHeight: 1.0, marginBottom: '4px',
@@ -325,7 +325,7 @@ export default function Portfolio() {
                   ‹ All categories
                 </button>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {(shouldGroup ? groupedProjects[openFolder] || [] : submittedProjects).map((project, i) => (
                   <ProjectCard
                     key={i}

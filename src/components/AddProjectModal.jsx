@@ -56,6 +56,8 @@ function SectionSep({ label, optional }) {
   )
 }
 
+const MAX_IMAGES = 5
+
 function readAsBase64(file) {
   return new Promise((resolve) => {
     const reader = new FileReader()
@@ -64,16 +66,43 @@ function readAsBase64(file) {
   })
 }
 
-export default function AddProjectModal({ onClose, onAdded }) {
-  const { addSubmittedProject } = useUser()
+export default function AddProjectModal({ onClose, onAdded, existingProject }) {
+  const { addSubmittedProject, updateSubmittedProject } = useUser()
+  const isEditing = !!existingProject
 
-  const [form, setForm] = useState({
-    title: '', discipline: '', client: '', tools: '',
-    brief: '', targetAudience: '', constraints: '',
-    description: '', role: '', collaborators: '', projectLink: '', year: '2025',
+  const [form, setForm] = useState(() => {
+    if (!existingProject) {
+      return {
+        title: '', discipline: '', client: '', tools: '',
+        brief: '', targetAudience: '', constraints: '',
+        description: '', role: '', collaborators: '', projectLink: '', year: '2025',
+      }
+    }
+    const b = existingProject.brief || {}
+    const m = existingProject.meta || {}
+    return {
+      title: existingProject.title || '',
+      discipline: existingProject.discipline || b.folder || '',
+      client: m.client || '',
+      tools: m.tools || '',
+      brief: b.summary || b.ask || '',
+      targetAudience: b.target_audience || '',
+      constraints: Array.isArray(b.constraints) ? b.constraints.join(', ') : '',
+      description: existingProject.note || '',
+      role: m.role || '',
+      collaborators: m.collaborators || '',
+      projectLink: m.projectLink || '',
+      year: m.year || '2025',
+    }
   })
-  const [imageThumbs, setImageThumbs] = useState([])
-  const [imagesBase64, setImagesBase64] = useState([])
+  // Existing images are already-uploaded URLs; uploadImage() passes URLs
+  // straight through on save, so we can keep both real URLs and new base64
+  // selections in the same array.
+  const initialImages = existingProject
+    ? (existingProject.images?.length ? existingProject.images : existingProject.image ? [existingProject.image] : [])
+    : []
+  const [imageThumbs, setImageThumbs] = useState(initialImages)
+  const [imagesBase64, setImagesBase64] = useState(initialImages)
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
@@ -83,13 +112,30 @@ export default function AddProjectModal({ onClose, onAdded }) {
   const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))
 
   const handleImages = async (e) => {
-    const files = Array.from(e.target.files)
+    const files = Array.from(e.target.files).filter((f) => f.type.startsWith('image/'))
     if (!files.length) return
-    const thumbs = files
-      .filter((f) => f.type.startsWith('image/'))
-      .map((f) => URL.createObjectURL(f))
-    setImageThumbs(thumbs)
-    setImagesBase64(await Promise.all(files.map(readAsBase64)))
+
+    const remaining = MAX_IMAGES - imagesBase64.length
+    const accepted = files.slice(0, Math.max(remaining, 0))
+
+    if (accepted.length < files.length) {
+      setErrors((prev) => ({ ...prev, images: `Max ${MAX_IMAGES} images — only added ${accepted.length} of ${files.length}` }))
+    } else {
+      setErrors((prev) => ({ ...prev, images: undefined }))
+    }
+
+    if (!accepted.length) return
+
+    const newThumbs = accepted.map((f) => URL.createObjectURL(f))
+    const newBase64 = await Promise.all(accepted.map(readAsBase64))
+    setImageThumbs((prev) => [...prev, ...newThumbs])
+    setImagesBase64((prev) => [...prev, ...newBase64])
+    e.target.value = ''
+  }
+
+  const handleRemoveImage = (index) => {
+    setImageThumbs((prev) => prev.filter((_, i) => i !== index))
+    setImagesBase64((prev) => prev.filter((_, i) => i !== index))
     setErrors((prev) => ({ ...prev, images: undefined }))
   }
 
@@ -105,7 +151,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
     setSubmitting(true)
     setSubmitError(null)
 
-    const result = await addSubmittedProject({
+    const payload = {
       title: form.title,
       discipline: form.discipline,
       folderColor: folder?.color || '#60DDE6',
@@ -115,7 +161,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
       note: form.description,
       isManual: true,
       brief: {
-        brief_id: null,
+        brief_id: existingProject?.brief?.brief_id || null,
         title: form.title,
         folder: form.discipline,
         folder_color: folder?.color || '#60DDE6',
@@ -124,11 +170,11 @@ export default function AddProjectModal({ onClose, onAdded }) {
         constraints: form.constraints
           ? form.constraints.split(',').map((c) => c.trim()).filter(Boolean)
           : [],
-        deliverables: [],
+        deliverables: existingProject?.brief?.deliverables || [],
         target_audience: form.targetAudience,
-        brand_tone: '',
+        brand_tone: existingProject?.brief?.brand_tone || '',
         art_direction: form.description,
-        image_prompt: '',
+        image_prompt: existingProject?.brief?.image_prompt || '',
       },
       meta: {
         client: form.client,
@@ -138,7 +184,11 @@ export default function AddProjectModal({ onClose, onAdded }) {
         projectLink: form.projectLink,
         year: form.year,
       },
-    })
+    }
+
+    const result = isEditing
+      ? await updateSubmittedProject(existingProject.id, payload)
+      : await addSubmittedProject(payload)
 
     setSubmitting(false)
 
@@ -147,7 +197,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
       return
     }
 
-    onAdded()
+    onAdded(result.data)
     onClose()
   }
 
@@ -161,7 +211,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
         zIndex: 100,
       }}
     >
-      <div style={{
+      <div className="responsive-page-padding" style={{
         background: '#FFFFFF',
         maxWidth: '640px',
         width: '90%',
@@ -173,7 +223,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
           <div style={{ fontFamily: HN, fontSize: '24px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0A0A0A' }}>
-            Add Project
+            {isEditing ? 'Edit Project' : 'Add Project'}
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#0A0A0A', lineHeight: 1, padding: 0 }}>
             ×
@@ -200,7 +250,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
         </Field>
 
         {/* Grid row 1: Client | Tools */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <div className="responsive-grid-fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
           <Field label="Client or Project Type" compact>
             <input style={inputStyle} placeholder="e.g. Personal project, Client name" value={form.client} onChange={set('client')} />
           </Field>
@@ -238,11 +288,9 @@ export default function AddProjectModal({ onClose, onAdded }) {
 
         <Field label="Project Images" error={errors.images}>
           <div
-            onClick={() => imagesRef.current?.click()}
             style={{
               border: '1.5px dashed rgba(0,0,0,0.2)', borderRadius: '4px',
               padding: imageThumbs.length > 0 ? '12px' : '28px',
-              cursor: 'pointer',
               background: 'rgba(0,0,0,0.02)', minHeight: '80px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
@@ -250,31 +298,64 @@ export default function AddProjectModal({ onClose, onAdded }) {
             {imageThumbs.length > 0 ? (
               <div style={{ width: '100%' }}>
                 <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', marginBottom: '8px' }}>
-                  {imageThumbs.length} image{imageThumbs.length === 1 ? '' : 's'} selected — first one is used as the cover
+                  {imageThumbs.length} of {MAX_IMAGES} image{imageThumbs.length === 1 ? '' : 's'} — first one is used as the cover
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   {imageThumbs.map((t, i) => (
-                    <img
-                      key={i}
-                      src={t}
-                      alt=""
-                      style={{
-                        width: '64px', height: '64px', objectFit: 'cover', borderRadius: '3px',
-                        border: i === 0 ? '2px solid #0A0A0A' : '1px solid rgba(0,0,0,0.1)',
-                      }}
-                    />
+                    <div key={i} style={{ position: 'relative' }}>
+                      <img
+                        src={t}
+                        alt=""
+                        style={{
+                          width: '64px', height: '64px', objectFit: 'cover', borderRadius: '3px',
+                          border: i === 0 ? '2px solid #0A0A0A' : '1px solid rgba(0,0,0,0.1)',
+                          display: 'block',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(i)}
+                        style={{
+                          position: 'absolute', top: '-6px', right: '-6px',
+                          width: '18px', height: '18px', borderRadius: '50%',
+                          background: '#0A0A0A', color: '#FFFFFF', border: '1.5px solid #FFFFFF',
+                          fontSize: '11px', lineHeight: 1, cursor: 'pointer', padding: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
                   ))}
+                  {imageThumbs.length < MAX_IMAGES && (
+                    <div
+                      onClick={() => imagesRef.current?.click()}
+                      style={{
+                        width: '64px', height: '64px', borderRadius: '3px',
+                        border: '1.5px dashed rgba(0,0,0,0.25)', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: HN, fontSize: '20px', color: '#999',
+                      }}
+                    >
+                      +
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
-              <span style={{ fontFamily: HN, fontSize: '12px', color: '#999' }}>Click to select one or more images</span>
+              <span
+                onClick={() => imagesRef.current?.click()}
+                style={{ fontFamily: HN, fontSize: '12px', color: '#999', cursor: 'pointer' }}
+              >
+                Click to select one or more images
+              </span>
             )}
           </div>
           <input ref={imagesRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImages} />
         </Field>
 
         {/* Grid rows 2-4: Target Audience | Your Role, Collaborators | Year, Project Link */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+        <div className="responsive-grid-fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
           <Field label="Target Audience" compact>
             <input style={inputStyle} placeholder="Who was this designed for?" value={form.targetAudience} onChange={set('targetAudience')} />
           </Field>
@@ -312,7 +393,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
             opacity: submitting ? 0.6 : 1,
           }}
         >
-          {submitting ? 'Saving…' : 'Add to Portfolio →'}
+          {submitting ? 'Saving…' : isEditing ? 'Save Changes' : 'Add to Portfolio →'}
         </button>
       </div>
     </div>

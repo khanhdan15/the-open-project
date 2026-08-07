@@ -144,7 +144,7 @@ export default function Settings() {
 
         <SectionSep label="Links" />
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        <div className="responsive-grid-fields" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           <Field label="Instagram">
             <input style={inputStyle} placeholder="@yourhandle" value={form.instagram} onChange={set('instagram')} />
           </Field>

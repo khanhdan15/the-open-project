@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import AddProjectModal from '../components/AddProjectModal'
 import { useUser } from '../context/UserContext'
 
 const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -66,8 +67,9 @@ export default function ProjectDetail() {
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [togglingHighlight, setTogglingHighlight] = useState(false)
+  const [editing, setEditing] = useState(false)
 
-  const { project } = location.state || {}
+  const [project, setProject] = useState(() => location.state?.project || null)
   const [isHighlight, setIsHighlight] = useState(project?.isHighlight || false)
 
   const handleDelete = async () => {
@@ -120,7 +122,7 @@ export default function ProjectDetail() {
       <Header />
 
       {/* Back button + delete */}
-      <div style={{ padding: '12px 48px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="responsive-page-padding" style={{ padding: '12px 48px 0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
         <button
           onClick={() => navigate('/portfolio')}
           style={{
@@ -133,6 +135,15 @@ export default function ProjectDetail() {
 
         {project?.id && (
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <button
+              onClick={() => setEditing(true)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontFamily: HN, fontSize: '11px', color: '#999', padding: 0,
+              }}
+            >
+              Edit project
+            </button>
             <button
               onClick={handleToggleHighlight}
               disabled={togglingHighlight}
@@ -160,7 +171,7 @@ export default function ProjectDetail() {
       </div>
 
       {/* Zone 1: Metadata bar */}
-      <div style={{
+      <div className="responsive-page-padding" style={{
         borderBottom: '1px solid rgba(0,0,0,0.12)',
         padding: '16px 48px',
         display: 'flex',
@@ -185,7 +196,7 @@ export default function ProjectDetail() {
       </div>
 
       {/* Zone 2: Main content grid */}
-      <div style={{
+      <div className="responsive-grid" style={{
         padding: '48px',
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
@@ -253,7 +264,7 @@ export default function ProjectDetail() {
         </div>
 
         {/* RIGHT COLUMN — image gallery */}
-        <div>
+        <div className="responsive-grid-images-first">
           {allImages.length === 0 ? (
             <div style={{
               border: '1.5px dashed rgba(0,0,0,0.2)',
@@ -304,6 +315,19 @@ export default function ProjectDetail() {
           )}
         </div>
       </div>
+
+      {editing && (
+        <AddProjectModal
+          existingProject={project}
+          onClose={() => setEditing(false)}
+          onAdded={(updated) => {
+            if (updated) {
+              setProject(updated)
+              setIsHighlight(updated.isHighlight || false)
+            }
+          }}
+        />
+      )}
     </div>
   )
 }

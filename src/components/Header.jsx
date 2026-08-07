@@ -40,7 +40,7 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
   const btnInactive = { ...btnBase, background: 'transparent', color: '#0A0A0A' }
 
   return (
-    <header style={{
+    <header className="app-header" style={{
       position: 'relative', display: 'flex', alignItems: 'center',
       justifyContent: 'flex-end',
       width: '100%', padding: '12px 20px', borderBottom: '1px solid #0A0A0A',
@@ -48,7 +48,7 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
     }}>
 
       {/* Left: Brief Generator + Community */}
-      <div style={{ position: 'absolute', left: '20px', display: 'flex', gap: '6px' }}>
+      <div className="app-header-left" style={{ position: 'absolute', left: '20px', display: 'flex', gap: '6px' }}>
         <button onClick={() => navigate('/')}
           style={isBriefGen ? btnActive : btnInactive}>
           Brief Generator
@@ -60,7 +60,7 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
       </div>
 
       {/* Center: OPEN RULER */}
-      <div style={{
+      <div className="app-header-center" style={{
         position: 'absolute', left: '50%', transform: 'translateX(-50%)',
         textAlign: 'center', fontFamily: SERIF, lineHeight: 1.1,
       }}>
@@ -69,7 +69,7 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
       </div>
 
       {/* Right: Account or Sign out */}
-      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      <div className="app-header-right" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
         {user && (
           <button onClick={handleSignOut} style={btnInactive}>
             Sign out
