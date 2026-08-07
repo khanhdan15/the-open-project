@@ -1,73 +1,99 @@
 // ─── Industry Pool ───────────────────────────────────────────────────────────
-// Claude picks from this randomly so briefs stay diverse across sessions
+// Claude picks from this randomly so briefs stay diverse across sessions.
+// Each scenario is tagged with a scale so briefs span from a single-location
+// indie business up to a nationally/globally recognized name — not just
+// boutique clients every time.
 const INDUSTRY_POOL = [
   // Food & Hospitality
-  "a new café opening in a converted warehouse",
-  "a family-run ramen shop expanding to a second location",
-  "a natural wine bar with no signage by design",
-  "a ghost kitchen brand launching delivery-only",
-  "a rooftop beekeeping collective selling urban honey",
+  { text: "a new café opening in a converted warehouse", scale: "boutique" },
+  { text: "a family-run ramen shop expanding to a second location", scale: "boutique" },
+  { text: "a natural wine bar with no signage by design", scale: "boutique" },
+  { text: "a specialty coffee roaster known for its single-origin sourcing", scale: "boutique" },
+  { text: "a ghost kitchen brand launching delivery-only", scale: "growing" },
+  { text: "a regional fast-casual chain expanding past its home city", scale: "growing" },
+  { text: "a Michelin-starred restaurant group opening a casual sister concept", scale: "growing" },
+  { text: "a national coffee chain relaunching its identity for a younger audience", scale: "established" },
+  { text: "a legacy hotel group refreshing its identity after a generational handover", scale: "established" },
 
   // Fashion & Apparel
-  "an independent streetwear label dropping its first collection",
-  "a vintage resale shop going online for the first time",
-  "a slow-fashion brand made entirely from deadstock fabric",
-  "a genderless swimwear line launching in summer",
-  "a skate brand collaborating with a local muralist",
+  { text: "an independent streetwear label dropping its first collection", scale: "boutique" },
+  { text: "a vintage resale shop going online for the first time", scale: "boutique" },
+  { text: "a slow-fashion brand made entirely from deadstock fabric", scale: "boutique" },
+  { text: "a genderless swimwear line launching in summer", scale: "growing" },
+  { text: "a regional denim brand opening its first flagship store", scale: "growing" },
+  { text: "a heritage outerwear brand modernizing after 80 years in business", scale: "established" },
+  { text: "a global sportswear brand launching a limited local capsule collection", scale: "established" },
 
   // Culture & Arts
-  "a contemporary dance company with no permanent venue",
-  "an underground music festival in an industrial port",
-  "a zine collective publishing quarterly on risograph",
-  "a pop-up art fair running for 72 hours only",
-  "a community radio station moving to FM for the first time",
+  { text: "a contemporary dance company with no permanent venue", scale: "boutique" },
+  { text: "a zine collective publishing quarterly on risograph", scale: "boutique" },
+  { text: "an underground music festival in an industrial port", scale: "growing" },
+  { text: "a pop-up art fair running for 72 hours only", scale: "growing" },
+  { text: "a city's flagship contemporary art museum rebranding for a new wing", scale: "established" },
+  { text: "a national theatre company modernizing for younger audiences", scale: "established" },
 
   // Social & Community
-  "a neighbourhood tool-lending library",
-  "a youth coding club in an underserved suburb",
-  "a mutual aid network formalizing its identity",
-  "a community garden converting a parking lot",
-  "a bilingual cultural centre serving two immigrant communities",
+  { text: "a neighbourhood tool-lending library", scale: "boutique" },
+  { text: "a youth coding club in an underserved suburb", scale: "boutique" },
+  { text: "a mutual aid network formalizing its identity", scale: "boutique" },
+  { text: "a bilingual cultural centre serving two immigrant communities", scale: "growing" },
+  { text: "a state-wide public library system redesigning its wayfinding", scale: "established" },
 
   // Health & Wellness
-  "a women-only climbing gym opening downtown",
-  "a mental health app built by therapists, not techies",
-  "a herbalist apothecary going brick-and-mortar",
-  "a queer-friendly therapy collective",
-  "a sleep clinic rebranding away from clinical aesthetics",
+  { text: "a women-only climbing gym opening downtown", scale: "boutique" },
+  { text: "a herbalist apothecary going brick-and-mortar", scale: "boutique" },
+  { text: "a mental health app built by therapists, not techies", scale: "growing" },
+  { text: "a queer-friendly therapy collective expanding to three new cities", scale: "growing" },
+  { text: "a national fitness chain repositioning around mental health, not aesthetics", scale: "established" },
 
   // Tech & Product (kept, but grounded)
-  "a privacy-first browser extension for journalists",
-  "a hardware startup making open-source air quality monitors",
-  "a co-op ride-share launching in mid-size cities",
-  "a platform connecting freelance translators with NGOs",
-  "a tool that helps renters track landlord repair requests",
+  { text: "a privacy-first browser extension for journalists", scale: "boutique" },
+  { text: "a hardware startup making open-source air quality monitors", scale: "boutique" },
+  { text: "a platform connecting freelance translators with NGOs", scale: "growing" },
+  { text: "a co-op ride-share launching in mid-size cities", scale: "growing" },
+  { text: "a unicorn startup rebranding ahead of its IPO", scale: "established" },
+  { text: "a legacy consumer electronics brand relaunching a product line for Gen Z", scale: "established" },
 
   // Retail & Objects
-  "a candle brand built around scent memories",
-  "a bookshop specializing in translated fiction only",
-  "a ceramics studio launching a subscription box",
-  "a plant shop with a lending library of rare cuttings",
-  "a concept store selling only objects made within 100km",
+  { text: "a candle brand built around scent memories", scale: "boutique" },
+  { text: "a bookshop specializing in translated fiction only", scale: "boutique" },
+  { text: "a ceramics studio launching a subscription box", scale: "boutique" },
+  { text: "a plant shop with a lending library of rare cuttings", scale: "growing" },
+  { text: "a century-old department store reinventing its flagship experience", scale: "established" },
 
   // Education & Publishing
-  "a design school's open-enrolment summer program",
-  "a children's book publisher focused on Indigenous authors",
-  "a documentary photography magazine going print-first",
-  "a podcast network for first-generation university students",
-  "a type foundry releasing its first open-source typeface",
+  { text: "a design school's open-enrolment summer program", scale: "boutique" },
+  { text: "a children's book publisher focused on Indigenous authors", scale: "boutique" },
+  { text: "a podcast network for first-generation university students", scale: "growing" },
+  { text: "a type foundry releasing its first open-source typeface", scale: "growing" },
+  { text: "a major university rebranding its continuing-education division", scale: "established" },
 
   // Space & Environment
-  "a zero-waste architecture studio",
-  "a urban cycling infrastructure advocacy group",
-  "a rewilding charity working in post-industrial zones",
-  "a tiny-home builder targeting remote workers",
-  "a solar co-op in a low-income housing complex",
+  { text: "a zero-waste architecture studio", scale: "boutique" },
+  { text: "a tiny-home builder targeting remote workers", scale: "boutique" },
+  { text: "a rewilding charity working in post-industrial zones", scale: "growing" },
+  { text: "a solar co-op in a low-income housing complex", scale: "growing" },
+  { text: "a national parks foundation refreshing its brand for a new generation of visitors", scale: "established" },
 ]
 
+// Picks n scenarios, guaranteeing a spread across scales (boutique / growing /
+// established) rather than defaulting to only small indie businesses.
 function pickIndustries(n = 4) {
   const shuffled = [...INDUSTRY_POOL].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, n)
+  const scales = ['boutique', 'growing', 'established']
+  const picked = []
+
+  for (const scale of scales) {
+    if (picked.length >= n) break
+    const match = shuffled.find((c) => c.scale === scale && !picked.includes(c))
+    if (match) picked.push(match)
+  }
+  for (const c of shuffled) {
+    if (picked.length >= n) break
+    if (!picked.includes(c)) picked.push(c)
+  }
+
+  return picked.sort(() => Math.random() - 0.5).map((c) => c.text)
 }
 
 // ─── Quick Brief ─────────────────────────────────────────────────────────────
@@ -82,9 +108,10 @@ ${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 Rules:
 - The brief should feel like a real client handoff — specific enough to be grounded, loose enough to allow full creative freedom.
-- Avoid fintech, banking, SaaS, or generic corporate clients unless the scenario above calls for it.
+- Vary the client's scale across generations: sometimes a single-location independent business, sometimes a widely recognized regional, national, or global name. Don't default to only small indie businesses — mix it up.
+- Make the deliverables, budget/timeline constraints, and tone accurate to that client's real-world scale and industry norms. A neighbourhood café brief should read smaller in scope (tighter budget, faster timeline) than a national retailer brief (multi-channel, longer runway) — get that proportion right.
+- Avoid flat, forgettable corporate scenarios (a generic bank tagline, a boilerplate SaaS logo). Even large, established clients should have a specific, textured story behind the ask — something with a real creative hook, not a template.
 - Do NOT prescribe visual direction (no "use bold colors" or "minimal aesthetic"). Let the designer interpret freely.
-- The client should feel like a real, interesting small-to-mid organization — not a Fortune 500.
 - Make the summary feel written by the actual client, in their voice.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
@@ -144,10 +171,10 @@ ${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 Rules:
 - The brief should feel exciting and ambitious — something a design student or junior designer would be proud to submit publicly.
-- Avoid fintech, banking, or generic corporate contexts.
+- Vary the client's scale: sometimes a scrappy local project, sometimes a nationally or globally recognized name taking a creative risk. Don't default to only small indie businesses.
+- Keep deliverables and constraints proportional to the client's real scale, and keep it culturally relevant and specific — avoid flat, textbook corporate scenarios even when the client is large.
 - Must be open-ended enough to produce wildly different creative responses from different designers.
 - Do NOT prescribe visual direction. Let the designer interpret freely.
-- The client/organization should feel culturally relevant, not textbook.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {
