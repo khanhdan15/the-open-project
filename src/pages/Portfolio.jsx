@@ -94,49 +94,45 @@ function CategoryFolder({ discipline, projects, onClick }) {
         alignItems: 'center', gap: '10px', textAlign: 'center', width: '170px',
       }}
     >
-      <div style={{ position: 'relative', width: '170px', height: '150px' }}>
-        {/* Photo stack peeking out of the folder */}
+      <div style={{ position: 'relative', width: '170px', height: '130px' }}>
+        {/* Photo peeks — mostly tucked behind the folder, just a sliver showing */}
         <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: '96px',
-          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+          position: 'absolute', top: '28px', left: 0, right: 0, height: '50px',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1,
         }}>
-          {thumbs.length > 0 ? (
-            thumbs.map((src, i) => {
-              const n = thumbs.length
-              const angle = (i - (n - 1) / 2) * 9
-              const offsetX = (i - (n - 1) / 2) * 34
-              return (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  style={{
-                    position: 'absolute',
-                    width: '72px', height: '72px', objectFit: 'cover',
-                    borderRadius: '6px', border: '3px solid #FFFFFF',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
-                    transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
-                    zIndex: i,
-                  }}
-                />
-              )
-            })
-          ) : (
-            <span style={{ fontFamily: HN, fontSize: '10px', color: 'rgba(0,0,0,0.35)', marginBottom: '28px' }}>empty</span>
-          )}
+          {thumbs.map((src, i) => {
+            const n = thumbs.length
+            const angle = (i - (n - 1) / 2) * 11
+            const offsetX = (i - (n - 1) / 2) * 42
+            return (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                style={{
+                  position: 'absolute',
+                  width: '42px', height: '42px', objectFit: 'cover',
+                  borderRadius: '5px', border: '2px solid #FFFFFF',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                  transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
+                }}
+              />
+            )
+          })}
         </div>
 
         {/* Folder tab */}
         <div style={{
-          position: 'absolute', top: '54px', left: '10px',
+          position: 'absolute', top: '46px', left: '10px',
           width: '66px', height: '18px', background: color,
-          borderRadius: '8px 8px 0 0',
+          borderRadius: '8px 8px 0 0', zIndex: 2,
         }} />
         {/* Folder body */}
         <div style={{
-          position: 'absolute', top: '68px', left: 0, right: 0, height: '82px',
+          position: 'absolute', top: '60px', left: 0, right: 0, height: '70px',
           background: color, borderRadius: '10px',
           border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+          zIndex: 2,
         }} />
       </div>
       <div style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.3 }}>
