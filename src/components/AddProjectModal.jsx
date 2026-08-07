@@ -72,26 +72,15 @@ export default function AddProjectModal({ onClose, onAdded }) {
     brief: '', targetAudience: '', constraints: '',
     description: '', role: '', collaborators: '', projectLink: '', year: '2025',
   })
-  const [coverPreview, setCoverPreview] = useState(null)
-  const [coverBase64, setCoverBase64] = useState(null)
-  const [extraThumbs, setExtraThumbs] = useState([])
-  const [extraBase64, setExtraBase64] = useState([])
+  const [imageThumbs, setImageThumbs] = useState([])
+  const [imagesBase64, setImagesBase64] = useState([])
   const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState(null)
 
-  const coverRef = useRef(null)
   const imagesRef = useRef(null)
 
   const set = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }))
-
-  const handleCover = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    setCoverPreview(URL.createObjectURL(file))
-    setCoverBase64(await readAsBase64(file))
-    setErrors((prev) => ({ ...prev, coverImage: undefined }))
-  }
 
   const handleImages = async (e) => {
     const files = Array.from(e.target.files)
@@ -99,15 +88,16 @@ export default function AddProjectModal({ onClose, onAdded }) {
     const thumbs = files
       .filter((f) => f.type.startsWith('image/'))
       .map((f) => URL.createObjectURL(f))
-    setExtraThumbs(thumbs)
-    setExtraBase64(await Promise.all(files.map(readAsBase64)))
+    setImageThumbs(thumbs)
+    setImagesBase64(await Promise.all(files.map(readAsBase64)))
+    setErrors((prev) => ({ ...prev, images: undefined }))
   }
 
   const handleSubmit = async () => {
     const newErrors = {}
     if (!form.title.trim()) newErrors.title = 'Required'
     if (!form.discipline) newErrors.discipline = 'Required'
-    if (!coverBase64) newErrors.coverImage = 'Required'
+    if (imagesBase64.length === 0) newErrors.images = 'Add at least one image'
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return }
 
     const folder = FOLDER_OPTIONS.find((f) => f.name === form.discipline)
@@ -119,9 +109,9 @@ export default function AddProjectModal({ onClose, onAdded }) {
       title: form.title,
       discipline: form.discipline,
       folderColor: folder?.color || '#60DDE6',
-      coverImage: coverBase64,
-      images: extraBase64,
-      image: coverBase64,
+      coverImage: imagesBase64[0],
+      images: imagesBase64,
+      image: imagesBase64[0],
       note: form.description,
       isManual: true,
       brief: {
@@ -246,50 +236,41 @@ export default function AddProjectModal({ onClose, onAdded }) {
           />
         </Field>
 
-        <Field label="Cover Image" error={errors.coverImage}>
-          <div
-            onClick={() => coverRef.current?.click()}
-            style={{
-              border: '1.5px dashed rgba(0,0,0,0.2)', borderRadius: '4px',
-              padding: coverPreview ? '8px' : '28px',
-              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(0,0,0,0.02)', overflow: 'hidden', minHeight: '80px',
-            }}
-          >
-            {coverPreview ? (
-              <img src={coverPreview} alt="Cover" style={{ maxHeight: '200px', maxWidth: '100%', objectFit: 'contain', display: 'block', borderRadius: '2px' }} />
-            ) : (
-              <span style={{ fontFamily: HN, fontSize: '12px', color: '#999' }}>Click to select cover image</span>
-            )}
-          </div>
-          <input ref={coverRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCover} />
-        </Field>
-
-        <Field label="Project Images / PDF">
+        <Field label="Project Images" error={errors.images}>
           <div
             onClick={() => imagesRef.current?.click()}
             style={{
               border: '1.5px dashed rgba(0,0,0,0.2)', borderRadius: '4px',
-              padding: '16px', cursor: 'pointer',
-              background: 'rgba(0,0,0,0.02)', minHeight: '56px',
+              padding: imageThumbs.length > 0 ? '12px' : '28px',
+              cursor: 'pointer',
+              background: 'rgba(0,0,0,0.02)', minHeight: '80px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}
           >
-            {extraThumbs.length > 0 ? (
-              <div>
+            {imageThumbs.length > 0 ? (
+              <div style={{ width: '100%' }}>
                 <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', marginBottom: '8px' }}>
-                  {extraBase64.length} {extraBase64.length === 1 ? 'file' : 'files'} selected
+                  {imageThumbs.length} image{imageThumbs.length === 1 ? '' : 's'} selected — first one is used as the cover
                 </div>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                  {extraThumbs.map((t, i) => (
-                    <img key={i} src={t} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '3px', border: '1px solid rgba(0,0,0,0.1)' }} />
+                  {imageThumbs.map((t, i) => (
+                    <img
+                      key={i}
+                      src={t}
+                      alt=""
+                      style={{
+                        width: '64px', height: '64px', objectFit: 'cover', borderRadius: '3px',
+                        border: i === 0 ? '2px solid #0A0A0A' : '1px solid rgba(0,0,0,0.1)',
+                      }}
+                    />
                   ))}
                 </div>
               </div>
             ) : (
-              <span style={{ fontFamily: HN, fontSize: '12px', color: '#999' }}>Click to select project images or PDF</span>
+              <span style={{ fontFamily: HN, fontSize: '12px', color: '#999' }}>Click to select one or more images</span>
             )}
           </div>
-          <input ref={imagesRef} type="file" accept="image/*,.pdf" multiple style={{ display: 'none' }} onChange={handleImages} />
+          <input ref={imagesRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleImages} />
         </Field>
 
         {/* Grid rows 2-4: Target Audience | Your Role, Collaborators | Year, Project Link */}
