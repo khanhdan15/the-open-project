@@ -77,6 +77,8 @@ export default function AddProjectModal({ onClose, onAdded }) {
   const [extraThumbs, setExtraThumbs] = useState([])
   const [extraBase64, setExtraBase64] = useState([])
   const [errors, setErrors] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState(null)
 
   const coverRef = useRef(null)
   const imagesRef = useRef(null)
@@ -101,7 +103,7 @@ export default function AddProjectModal({ onClose, onAdded }) {
     setExtraBase64(await Promise.all(files.map(readAsBase64)))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = {}
     if (!form.title.trim()) newErrors.title = 'Required'
     if (!form.discipline) newErrors.discipline = 'Required'
@@ -110,8 +112,12 @@ export default function AddProjectModal({ onClose, onAdded }) {
 
     const folder = FOLDER_OPTIONS.find((f) => f.name === form.discipline)
 
-    addSubmittedProject({
+    setSubmitting(true)
+    setSubmitError(null)
+
+    const result = await addSubmittedProject({
       title: form.title,
+      discipline: form.discipline,
       folderColor: folder?.color || '#60DDE6',
       coverImage: coverBase64,
       images: extraBase64,
@@ -143,6 +149,13 @@ export default function AddProjectModal({ onClose, onAdded }) {
         year: form.year,
       },
     })
+
+    setSubmitting(false)
+
+    if (!result || result.error) {
+      setSubmitError(result?.error?.message || 'Failed to save project. Please try again.')
+      return
+    }
 
     onAdded()
     onClose()
@@ -300,17 +313,25 @@ export default function AddProjectModal({ onClose, onAdded }) {
           </div>
         </div>
 
+        {submitError && (
+          <div style={{ fontFamily: HN, fontSize: '11px', color: '#E84A4A', marginBottom: '10px' }}>
+            {submitError}
+          </div>
+        )}
+
         <button
           onClick={handleSubmit}
+          disabled={submitting}
           style={{
             width: '100%', marginTop: '8px',
             background: '#D4E84A', color: '#0A0A0A',
             fontFamily: HN, fontSize: '11px', textTransform: 'uppercase',
             letterSpacing: '0.1em', padding: '14px',
-            border: 'none', borderRadius: 0, cursor: 'pointer',
+            border: 'none', borderRadius: 0, cursor: submitting ? 'default' : 'pointer',
+            opacity: submitting ? 0.6 : 1,
           }}
         >
-          Add to Portfolio →
+          {submitting ? 'Saving…' : 'Add to Portfolio →'}
         </button>
       </div>
     </div>

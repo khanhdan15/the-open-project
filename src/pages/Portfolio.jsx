@@ -118,7 +118,8 @@ function OngoingCard({ savedBrief, onClick }) {
 
 export default function Portfolio() {
   const navigate = useNavigate()
-  const { user, submittedProjects, savedBriefs } = useUser()
+  const { user, submittedProjects, savedBriefs, loading } = useUser()
+  const displayName = user?.user_metadata?.username || ''
   const [toast, setToast] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
@@ -129,11 +130,11 @@ export default function Portfolio() {
   }
 
   useEffect(() => {
-    if (!user || !user.displayName) navigate('/signup', { replace: true })
-  }, [user, navigate])
+    if (!loading && !user) navigate('/signup', { replace: true })
+  }, [user, loading, navigate])
 
   const handleShare = () => {
-    const slug = user?.displayName?.toLowerCase().replace(/\s+/g, '') || 'portfolio'
+    const slug = displayName.toLowerCase().replace(/\s+/g, '') || 'portfolio'
     navigator.clipboard.writeText(`theopenproject.com/${slug}`)
     setToast(true)
     setTimeout(() => setToast(false), 2000)
@@ -155,7 +156,7 @@ export default function Portfolio() {
               color: '#0A0A0A', textTransform: 'uppercase',
               lineHeight: 1.0, marginBottom: '4px',
             }}>
-              {user?.displayName || 'Your Name'}
+              {displayName || 'Your Name'}
             </div>
             {user?.bio && (
               <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.6, maxWidth: '480px' }}>

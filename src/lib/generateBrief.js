@@ -1,10 +1,91 @@
+// ─── Industry Pool ───────────────────────────────────────────────────────────
+// Claude picks from this randomly so briefs stay diverse across sessions
+const INDUSTRY_POOL = [
+  // Food & Hospitality
+  "a new café opening in a converted warehouse",
+  "a family-run ramen shop expanding to a second location",
+  "a natural wine bar with no signage by design",
+  "a ghost kitchen brand launching delivery-only",
+  "a rooftop beekeeping collective selling urban honey",
+
+  // Fashion & Apparel
+  "an independent streetwear label dropping its first collection",
+  "a vintage resale shop going online for the first time",
+  "a slow-fashion brand made entirely from deadstock fabric",
+  "a genderless swimwear line launching in summer",
+  "a skate brand collaborating with a local muralist",
+
+  // Culture & Arts
+  "a contemporary dance company with no permanent venue",
+  "an underground music festival in an industrial port",
+  "a zine collective publishing quarterly on risograph",
+  "a pop-up art fair running for 72 hours only",
+  "a community radio station moving to FM for the first time",
+
+  // Social & Community
+  "a neighbourhood tool-lending library",
+  "a youth coding club in an underserved suburb",
+  "a mutual aid network formalizing its identity",
+  "a community garden converting a parking lot",
+  "a bilingual cultural centre serving two immigrant communities",
+
+  // Health & Wellness
+  "a women-only climbing gym opening downtown",
+  "a mental health app built by therapists, not techies",
+  "a herbalist apothecary going brick-and-mortar",
+  "a queer-friendly therapy collective",
+  "a sleep clinic rebranding away from clinical aesthetics",
+
+  // Tech & Product (kept, but grounded)
+  "a privacy-first browser extension for journalists",
+  "a hardware startup making open-source air quality monitors",
+  "a co-op ride-share launching in mid-size cities",
+  "a platform connecting freelance translators with NGOs",
+  "a tool that helps renters track landlord repair requests",
+
+  // Retail & Objects
+  "a candle brand built around scent memories",
+  "a bookshop specializing in translated fiction only",
+  "a ceramics studio launching a subscription box",
+  "a plant shop with a lending library of rare cuttings",
+  "a concept store selling only objects made within 100km",
+
+  // Education & Publishing
+  "a design school's open-enrolment summer program",
+  "a children's book publisher focused on Indigenous authors",
+  "a documentary photography magazine going print-first",
+  "a podcast network for first-generation university students",
+  "a type foundry releasing its first open-source typeface",
+
+  // Space & Environment
+  "a zero-waste architecture studio",
+  "a urban cycling infrastructure advocacy group",
+  "a rewilding charity working in post-industrial zones",
+  "a tiny-home builder targeting remote workers",
+  "a solar co-op in a low-income housing complex",
+]
+
+function pickIndustries(n = 4) {
+  const shuffled = [...INDUSTRY_POOL].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, n)
+}
+
+// ─── Quick Brief ─────────────────────────────────────────────────────────────
 function buildPrompt(discipline) {
+  const candidates = pickIndustries(4)
+
   return `You are a creative director giving a design brief to a designer.
 Generate a realistic, open-ended design brief for the discipline: ${discipline}.
 
-The brief should feel like a real client handoff — specific enough to
-be grounded, loose enough to allow full creative freedom.
-Do not over-specify visual direction. Let the designer interpret.
+Pick ONE of the following client scenarios that interests you most — or invent something equally unexpected:
+${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+Rules:
+- The brief should feel like a real client handoff — specific enough to be grounded, loose enough to allow full creative freedom.
+- Avoid fintech, banking, SaaS, or generic corporate clients unless the scenario above calls for it.
+- Do NOT prescribe visual direction (no "use bold colors" or "minimal aesthetic"). Let the designer interpret freely.
+- The client should feel like a real, interesting small-to-mid organization — not a Fortune 500.
+- Make the summary feel written by the actual client, in their voice.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {
@@ -50,15 +131,23 @@ export async function generateBrief(discipline) {
   return JSON.parse(cleaned)
 }
 
+// ─── Challenge Brief ──────────────────────────────────────────────────────────
 function buildChallengePrompt(discipline) {
+  const candidates = pickIndustries(3)
+
   return `You are a creative director running a weekly public design challenge.
 Generate a compelling open brief for this week's community challenge.
 Discipline: ${discipline}
 
-The brief should feel exciting and ambitious — something a design student
-or junior designer would be proud to take on publicly.
-It must be open-ended enough to allow wildly different creative responses.
-Do not prescribe visual direction. Let the designer interpret freely.
+Pick ONE of the following scenarios as inspiration — or go somewhere equally bold and unexpected:
+${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
+
+Rules:
+- The brief should feel exciting and ambitious — something a design student or junior designer would be proud to submit publicly.
+- Avoid fintech, banking, or generic corporate contexts.
+- Must be open-ended enough to produce wildly different creative responses from different designers.
+- Do NOT prescribe visual direction. Let the designer interpret freely.
+- The client/organization should feel culturally relevant, not textbook.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {

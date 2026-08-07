@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import { useUser } from '../context/UserContext'
 
 const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
@@ -61,9 +62,25 @@ function BriefGrid({ brief, color }) {
 export default function ProjectDetail() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { removeSubmittedProject } = useUser()
   const [briefExpanded, setBriefExpanded] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const { project } = location.state || {}
+
+  const handleDelete = async () => {
+    if (!project?.id) return
+    const confirmed = window.confirm('Delete this project from your portfolio? This can\'t be undone.')
+    if (!confirmed) return
+    setDeleting(true)
+    const { error } = await removeSubmittedProject(project.id) || {}
+    setDeleting(false)
+    if (error) {
+      alert('Failed to delete project. Please try again.')
+      return
+    }
+    navigate('/portfolio')
+  }
 
   if (!project) {
     return (
@@ -88,8 +105,8 @@ export default function ProjectDetail() {
     <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
-      {/* Back button */}
-      <div style={{ padding: '12px 48px 0' }}>
+      {/* Back button + delete */}
+      <div style={{ padding: '12px 48px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button
           onClick={() => navigate('/portfolio')}
           style={{
@@ -99,6 +116,20 @@ export default function ProjectDetail() {
         >
           ← Back to portfolio
         </button>
+
+        {project?.id && (
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            style={{
+              background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
+              fontFamily: HN, fontSize: '11px', color: '#E84A4A', padding: 0,
+              opacity: deleting ? 0.5 : 1,
+            }}
+          >
+            {deleting ? 'Deleting…' : 'Delete project'}
+          </button>
+        )}
       </div>
 
       {/* Zone 1: Metadata bar */}

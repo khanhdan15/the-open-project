@@ -158,7 +158,7 @@ export default function Brief() {
   const handleSubmitProject = () => {
     if (!submitMode) { setSubmitMode(true); return }
     if (imagesBase64.length > 0) {
-      removeSavedBrief(brief.brief_id)
+      if (brief.id) removeSavedBrief(brief.id)
       addSubmittedProject({
         brief,
         title: brief.title,
