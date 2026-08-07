@@ -90,34 +90,66 @@ button { cursor: pointer; }
   border-radius: 10px;
 }
 
-/* Highlight work — a full-width row of rectangular tiles, width divided
-   evenly by however many are highlighted, that lift slightly on hover */
+/* Highlight work — a bottom-aligned row of small thumbnails that fill the
+   row width (like a filmstrip). Hovering one pops it up much larger, on top
+   of its neighbors, with its title as a caption — the rest stay put. */
+.highlight-stack-wrap {
+  height: 260px;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+}
 .highlight-stack {
   display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
   width: 100%;
-  gap: 10px;
+  gap: 8px;
+  row-gap: 60px;
 }
 .highlight-stack-item {
   position: relative;
-  flex: 1 1 0;
-  min-width: 0;
-  aspect-ratio: 4 / 3;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  flex: 1 1 70px;
+  max-width: 110px;
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
 }
-.highlight-stack-item:hover {
-  transform: scale(1.05);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
-  z-index: 5;
+.highlight-stack-item-media {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transform-origin: bottom center;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  position: relative;
 }
-.highlight-stack-item img {
+.highlight-stack-item:hover .highlight-stack-item-media {
+  transform: scale(2.6);
+  box-shadow: 0 22px 46px rgba(0, 0, 0, 0.32);
+  z-index: 10;
+}
+.highlight-stack-item-media img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.highlight-stack-item-caption {
+  position: absolute;
+  left: 50%;
+  bottom: -20px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #0A0A0A;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+.highlight-stack-item:hover .highlight-stack-item-caption {
+  opacity: 1;
 }
 
 /* Brief loading state */

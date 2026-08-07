@@ -148,20 +148,27 @@ function CategoryFolder({ discipline, projects, onClick }) {
 function HighlightStack({ projects, onSelect }) {
   if (projects.length === 0) return null
   return (
-    <div className="highlight-stack">
-      {projects.map((project) => {
-        const thumbnail = project.coverImage || project.images?.[0] || project.image
-        if (!thumbnail) return null
-        return (
-          <div
-            key={project.id}
-            className="highlight-stack-item"
-            onClick={() => onSelect(project)}
-          >
-            <img src={thumbnail} alt={project.title || 'Highlighted project'} />
-          </div>
-        )
-      })}
+    <div className="highlight-stack-wrap">
+      <div className="highlight-stack">
+        {projects.map((project) => {
+          const thumbnail = project.coverImage || project.images?.[0] || project.image
+          if (!thumbnail) return null
+          return (
+            <div
+              key={project.id}
+              className="highlight-stack-item"
+              onClick={() => onSelect(project)}
+            >
+              <div className="highlight-stack-item-media">
+                <img src={thumbnail} alt={project.title || 'Highlighted project'} />
+              </div>
+              <div className="highlight-stack-item-caption">
+                {project.title || 'Untitled'}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
