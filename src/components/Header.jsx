@@ -59,15 +59,13 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
         </button>
       </div>
 
-      {/* Center: THE (OPEN) PROJECT */}
+      {/* Center: OPEN RULER */}
       <div style={{
         position: 'absolute', left: '50%', transform: 'translateX(-50%)',
         textAlign: 'center', fontFamily: SERIF, lineHeight: 1.1,
       }}>
-        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>
-          THE <span style={{ fontStyle: 'italic' }}>(OPEN)</span>
-        </div>
-        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>PROJECT</div>
+        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>OPEN</div>
+        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>RULER</div>
       </div>
 
       {/* Right: Account or Sign out */}

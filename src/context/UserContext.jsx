@@ -109,11 +109,11 @@ export function UserProvider({ children }) {
   }
 
   // Auth actions
-  async function signUp(email, password, username) {
+  async function signUp(email, password, name) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username } }
+      options: { data: { name } }
     })
     return { data, error }
   }
@@ -125,6 +125,15 @@ export function UserProvider({ children }) {
 
   async function signOut() {
     await supabase.auth.signOut()
+  }
+
+  // Profile — persisted on the Supabase auth user's metadata (name, title,
+  // bio, workExperience, instagram, linkedin, behance, cvUrl).
+  async function updateProfile(fields) {
+    if (!user) return
+    const { data, error } = await supabase.auth.updateUser({ data: fields })
+    if (data?.user) setUser(data.user)
+    return { data, error }
   }
 
   // Briefs
@@ -185,7 +194,7 @@ export function UserProvider({ children }) {
   return (
     <UserContext.Provider value={{
       user, savedBriefs, submittedProjects, loading,
-      signUp, signIn, signOut,
+      signUp, signIn, signOut, updateProfile,
       addSavedBrief, removeSavedBrief, addSubmittedProject, removeSubmittedProject,
     }}>
       {children}

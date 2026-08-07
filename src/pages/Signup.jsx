@@ -9,7 +9,7 @@ export default function Signup() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [form, setForm] = useState({
-    username: '',
+    name: '',
     email: '',
     password: '',
   })
@@ -26,9 +26,9 @@ export default function Signup() {
       const { error } = await signIn(form.email, form.password)
       if (error) { setError(error.message); setLoading(false); return }
     } else {
-      if (!form.username.trim()) { setError('Username is required'); setLoading(false); return }
+      if (!form.name.trim()) { setError('Name is required'); setLoading(false); return }
       if (form.password.length < 6) { setError('Password must be at least 6 characters'); setLoading(false); return }
-      const { error } = await signUp(form.email, form.password, form.username)
+      const { error } = await signUp(form.email, form.password, form.name)
       if (error) { setError(error.message); setLoading(false); return }
     }
 
@@ -43,18 +43,18 @@ export default function Signup() {
           {isLogin ? 'Welcome back' : 'Create account'}
         </h1>
         <p className="text-center text-sm text-gray-400 mb-8">
-          {isLogin ? 'Sign in to your account' : 'Join The Open Project'}
+          {isLogin ? 'Sign in to your account' : 'Join Open Ruler'}
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {!isLogin && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs uppercase tracking-widest text-gray-400">Username</label>
+              <label className="text-xs uppercase tracking-widest text-gray-400">Name</label>
               <input
-                name="username"
-                value={form.username}
+                name="name"
+                value={form.name}
                 onChange={handleChange}
-                placeholder="yourname"
+                placeholder="Your name"
                 className="border border-gray-200 rounded px-4 py-3 text-sm outline-none focus:border-black transition-colors"
               />
             </div>

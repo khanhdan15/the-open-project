@@ -119,7 +119,8 @@ function OngoingCard({ savedBrief, onClick }) {
 export default function Portfolio() {
   const navigate = useNavigate()
   const { user, submittedProjects, savedBriefs, loading } = useUser()
-  const displayName = user?.user_metadata?.username || ''
+  const profile = user?.user_metadata || {}
+  const displayName = profile.name || profile.username || ''
   const [toast, setToast] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
@@ -135,7 +136,7 @@ export default function Portfolio() {
 
   const handleShare = () => {
     const slug = displayName.toLowerCase().replace(/\s+/g, '') || 'portfolio'
-    navigator.clipboard.writeText(`theopenproject.com/${slug}`)
+    navigator.clipboard.writeText(`openruler.app/${slug}`)
     setToast(true)
     setTimeout(() => setToast(false), 2000)
   }
@@ -158,11 +159,21 @@ export default function Portfolio() {
             }}>
               {displayName || 'Your Name'}
             </div>
-            {user?.bio && (
-              <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.6, maxWidth: '480px' }}>
-                {user.bio}
+            {profile.bio && (
+              <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.6, maxWidth: '480px', marginBottom: '10px' }}>
+                {profile.bio}
               </div>
             )}
+            <button
+              onClick={() => navigate('/settings')}
+              style={{
+                fontFamily: HN, fontSize: '11px', color: '#999',
+                background: 'none', border: 'none', textDecoration: 'underline',
+                cursor: 'pointer', padding: 0,
+              }}
+            >
+              Edit profile
+            </button>
           </div>
 
           {/* Project grid */}
@@ -206,20 +217,23 @@ export default function Portfolio() {
 
           {/* Designer title + social icons */}
           <div style={{ marginBottom: '32px' }}>
-            {user?.title && (
+            {profile.title && (
               <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', marginBottom: '12px' }}>
-                {user.title}
+                {profile.title}
               </div>
             )}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {user?.instagram && (
-                <a href={`https://instagram.com/${user.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={socialLinkStyle}>Ig</a>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {profile.instagram && (
+                <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={socialLinkStyle}>Ig</a>
               )}
-              {user?.linkedin && (
-                <a href={user.linkedin} target="_blank" rel="noreferrer" style={socialLinkStyle}>Li</a>
+              {profile.linkedin && (
+                <a href={profile.linkedin} target="_blank" rel="noreferrer" style={socialLinkStyle}>Li</a>
               )}
-              {user?.behance && (
-                <a href={user.behance} target="_blank" rel="noreferrer" style={socialLinkStyle}>Be</a>
+              {profile.behance && (
+                <a href={profile.behance} target="_blank" rel="noreferrer" style={socialLinkStyle}>Be</a>
+              )}
+              {profile.cvUrl && (
+                <a href={profile.cvUrl} target="_blank" rel="noreferrer" style={socialLinkStyle}>CV</a>
               )}
             </div>
           </div>
