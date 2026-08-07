@@ -99,7 +99,7 @@ export default function Brief() {
           })
         }
       } catch (e) {
-        if (!cancelled) setError('Failed to generate brief. Check your API key and try again.')
+        if (!cancelled) setError(e.message || 'Failed to generate brief. Check your API key and try again.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -183,7 +183,7 @@ export default function Brief() {
         issued: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
       })
     } catch (e) {
-      setError('Failed to regenerate. Check your API key.')
+      setError(e.message || 'Failed to regenerate. Check your API key.')
     } finally {
       setLoading(false)
     }
