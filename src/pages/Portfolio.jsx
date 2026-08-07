@@ -78,20 +78,67 @@ const FOLDER_COLORS = {
   'Art & Space': '#E8804A',
 }
 
-function CategoryFolder({ discipline, count, onClick }) {
+function CategoryFolder({ discipline, projects, onClick }) {
   const color = FOLDER_COLORS[discipline] || '#D9D9D9'
+  const count = projects.length
+  const thumbs = projects
+    .map((p) => p.coverImage || p.images?.[0] || p.image)
+    .filter(Boolean)
+    .slice(0, 3)
+
   return (
     <div
       onClick={onClick}
       style={{
         cursor: 'pointer', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', gap: '8px', textAlign: 'center',
+        alignItems: 'center', gap: '10px', textAlign: 'center', width: '170px',
       }}
     >
-      <svg width="92" height="72" viewBox="0 0 92 72" xmlns="http://www.w3.org/2000/svg">
-        <rect x="4" y="10" width="38" height="14" rx="4" fill={color} />
-        <rect x="4" y="18" width="84" height="50" rx="7" fill={color} stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
-      </svg>
+      <div style={{ position: 'relative', width: '170px', height: '150px' }}>
+        {/* Photo stack peeking out of the folder */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '96px',
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+        }}>
+          {thumbs.length > 0 ? (
+            thumbs.map((src, i) => {
+              const n = thumbs.length
+              const angle = (i - (n - 1) / 2) * 9
+              const offsetX = (i - (n - 1) / 2) * 34
+              return (
+                <img
+                  key={i}
+                  src={src}
+                  alt=""
+                  style={{
+                    position: 'absolute',
+                    width: '72px', height: '72px', objectFit: 'cover',
+                    borderRadius: '6px', border: '3px solid #FFFFFF',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.18)',
+                    transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
+                    zIndex: i,
+                  }}
+                />
+              )
+            })
+          ) : (
+            <span style={{ fontFamily: HN, fontSize: '10px', color: 'rgba(0,0,0,0.35)', marginBottom: '28px' }}>empty</span>
+          )}
+        </div>
+
+        {/* Folder tab */}
+        <div style={{
+          position: 'absolute', top: '54px', left: '10px',
+          width: '66px', height: '18px', background: color,
+          borderRadius: '8px 8px 0 0',
+        }} />
+        {/* Folder body */}
+        <div style={{
+          position: 'absolute', top: '68px', left: 0, right: 0, height: '82px',
+          background: color, borderRadius: '10px',
+          border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+        }} />
+      </div>
       <div style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.3 }}>
         {discipline}
       </div>
@@ -225,12 +272,12 @@ export default function Portfolio() {
           {submittedProjects.length === 0 ? (
             <PlaceholderGrid />
           ) : shouldGroup && !openFolder ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '24px 12px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '32px 16px' }}>
               {Object.entries(groupedProjects).map(([discipline, projects]) => (
                 <CategoryFolder
                   key={discipline}
                   discipline={discipline}
-                  count={projects.length}
+                  projects={projects}
                   onClick={() => setOpenFolder(discipline)}
                 />
               ))}
