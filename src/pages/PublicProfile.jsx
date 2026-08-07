@@ -29,6 +29,81 @@ function rowToProject(row) {
   }
 }
 
+const FOLDER_COLORS = {
+  'Brand & Identity': '#D4E84A',
+  'Print & Type': '#E84AC8',
+  'Digital & Screen': '#60DDE6',
+  'Image & Direction': '#4AE87A',
+  'Art & Space': '#E8804A',
+}
+
+function CategoryFolder({ discipline, projects, onClick }) {
+  const color = FOLDER_COLORS[discipline] || '#D9D9D9'
+  const count = projects.length
+  const thumbs = projects
+    .map((p) => p.coverImage || p.images?.[0] || p.image)
+    .filter(Boolean)
+    .slice(0, 3)
+
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        cursor: 'pointer', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', gap: '10px', textAlign: 'center', width: '170px',
+      }}
+    >
+      <div style={{ position: 'relative', width: '170px', height: '130px' }}>
+        {/* Photo peeks — mostly tucked behind the folder, just a sliver showing */}
+        <div style={{
+          position: 'absolute', top: '28px', left: 0, right: 0, height: '50px',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1,
+        }}>
+          {thumbs.map((src, i) => {
+            const n = thumbs.length
+            const angle = (i - (n - 1) / 2) * 11
+            const offsetX = (i - (n - 1) / 2) * 42
+            return (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                style={{
+                  position: 'absolute',
+                  width: '42px', height: '42px', objectFit: 'cover',
+                  borderRadius: '5px', border: '2px solid #FFFFFF',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                  transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
+                }}
+              />
+            )
+          })}
+        </div>
+
+        {/* Folder tab */}
+        <div style={{
+          position: 'absolute', top: '46px', left: '10px',
+          width: '66px', height: '18px', background: color,
+          borderRadius: '8px 8px 0 0', zIndex: 2,
+        }} />
+        {/* Folder body */}
+        <div style={{
+          position: 'absolute', top: '60px', left: 0, right: 0, height: '70px',
+          background: color, borderRadius: '10px',
+          border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+          zIndex: 2,
+        }} />
+      </div>
+      <div style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.3 }}>
+        {discipline}
+      </div>
+      <div style={{ fontFamily: HN, fontSize: '10px', color: '#999' }}>
+        {count} project{count === 1 ? '' : 's'}
+      </div>
+    </div>
+  )
+}
+
 function ProjectCard({ project, onClick }) {
   const { brief, folderColor, coverImage, images, image, title } = project
   const folderName = brief?.folder || 'design'
@@ -72,6 +147,17 @@ export default function PublicProfile() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [openFolder, setOpenFolder] = useState(null)
+
+  const shouldGroup = projects.length > 5
+  const groupedProjects = shouldGroup
+    ? projects.reduce((groups, project) => {
+        const key = project.discipline || project.brief?.folder || 'Other'
+        if (!groups[key]) groups[key] = []
+        groups[key].push(project)
+        return groups
+      }, {})
+    : null
 
   useEffect(() => {
     let cancelled = false
@@ -161,15 +247,40 @@ export default function PublicProfile() {
 
           {projects.length === 0 ? (
             <div style={{ fontFamily: HN, fontSize: '12px', color: '#bbb' }}>No public projects yet.</div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {projects.map((project, i) => (
-                <ProjectCard
-                  key={i}
-                  project={project}
-                  onClick={() => navigate(`/project/${i}`, { state: { project } })}
+          ) : shouldGroup && !openFolder ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '32px 16px' }}>
+              {Object.entries(groupedProjects).map(([discipline, catProjects]) => (
+                <CategoryFolder
+                  key={discipline}
+                  discipline={discipline}
+                  projects={catProjects}
+                  onClick={() => setOpenFolder(discipline)}
                 />
               ))}
+            </div>
+          ) : (
+            <div>
+              {shouldGroup && (
+                <button
+                  onClick={() => setOpenFolder(null)}
+                  style={{
+                    fontFamily: HN, fontSize: '11px', color: '#999',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: 0, marginBottom: '16px', display: 'block',
+                  }}
+                >
+                  ‹ All categories
+                </button>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {(shouldGroup ? groupedProjects[openFolder] || [] : projects).map((project, i) => (
+                  <ProjectCard
+                    key={i}
+                    project={project}
+                    onClick={() => navigate(`/project/${i}`, { state: { project } })}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
