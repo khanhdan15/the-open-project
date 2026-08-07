@@ -145,6 +145,27 @@ function CategoryFolder({ discipline, projects, onClick }) {
   )
 }
 
+function HighlightStack({ projects, onSelect }) {
+  if (projects.length === 0) return null
+  return (
+    <div className="highlight-stack">
+      {projects.map((project) => {
+        const thumbnail = project.coverImage || project.images?.[0] || project.image
+        if (!thumbnail) return null
+        return (
+          <div
+            key={project.id}
+            className="highlight-stack-item"
+            onClick={() => onSelect(project)}
+          >
+            <img src={thumbnail} alt={project.title || 'Highlighted project'} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function OngoingCard({ savedBrief, onClick }) {
   if (savedBrief.isChallenge === true) {
     return (
@@ -203,6 +224,7 @@ export default function Portfolio() {
 
   // Once someone has more than 5 projects, group them into folders by
   // category instead of one long flat grid.
+  const highlightProjects = submittedProjects.filter((p) => p.isHighlight)
   const shouldGroup = submittedProjects.length > 5
   const groupedProjects = shouldGroup
     ? submittedProjects.reduce((groups, project) => {
@@ -305,6 +327,27 @@ export default function Portfolio() {
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Highlight work */}
+          {highlightProjects.length > 0 && (
+            <div style={{ marginTop: '40px' }}>
+              <div style={{
+                fontFamily: HN, fontSize: '11px', fontWeight: 400, color: '#0A0A0A',
+                borderBottom: '1px solid #0A0A0A',
+                paddingBottom: '4px', marginBottom: '16px',
+                display: 'inline-block',
+              }}>
+                highlight work
+              </div>
+              <HighlightStack
+                projects={highlightProjects}
+                onSelect={(project) => {
+                  const i = submittedProjects.indexOf(project)
+                  navigate(`/project/${i}`, { state: { project } })
+                }}
+              />
             </div>
           )}
 

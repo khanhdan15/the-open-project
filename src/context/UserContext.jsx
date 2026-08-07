@@ -59,6 +59,7 @@ export function UserProvider({ children }) {
       folderColor: row.folder_color,
       isChallenge: row.is_challenge,
       isPublic: row.is_public,
+      isHighlight: row.is_highlight,
       submitted_at: row.submitted_at,
     }
   }
@@ -187,6 +188,20 @@ export function UserProvider({ children }) {
     return { error }
   }
 
+  async function setProjectHighlight(projectId, isHighlight) {
+    if (!projectId) return
+    const { error } = await supabase
+      .from('submitted_projects')
+      .update({ is_highlight: isHighlight })
+      .eq('id', projectId)
+    if (!error) {
+      setSubmittedProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, isHighlight } : p))
+      )
+    }
+    return { error }
+  }
+
   // Projects
   async function addSubmittedProject(project) {
     if (!user) return
@@ -222,6 +237,7 @@ export function UserProvider({ children }) {
       user, savedBriefs, submittedProjects, loading,
       signUp, signIn, signOut, updateProfile,
       addSavedBrief, removeSavedBrief, addSubmittedProject, removeSubmittedProject,
+      setProjectHighlight,
     }}>
       {children}
     </UserContext.Provider>

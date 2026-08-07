@@ -62,11 +62,13 @@ function BriefGrid({ brief, color }) {
 export default function ProjectDetail() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { removeSubmittedProject } = useUser()
+  const { removeSubmittedProject, setProjectHighlight } = useUser()
   const [briefExpanded, setBriefExpanded] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [togglingHighlight, setTogglingHighlight] = useState(false)
 
   const { project } = location.state || {}
+  const [isHighlight, setIsHighlight] = useState(project?.isHighlight || false)
 
   const handleDelete = async () => {
     if (!project?.id) return
@@ -80,6 +82,18 @@ export default function ProjectDetail() {
       return
     }
     navigate('/portfolio')
+  }
+
+  const handleToggleHighlight = async () => {
+    if (!project?.id) return
+    setTogglingHighlight(true)
+    const { error } = await setProjectHighlight(project.id, !isHighlight) || {}
+    setTogglingHighlight(false)
+    if (error) {
+      alert('Failed to update highlight. Please try again.')
+      return
+    }
+    setIsHighlight((prev) => !prev)
   }
 
   if (!project) {
@@ -118,17 +132,30 @@ export default function ProjectDetail() {
         </button>
 
         {project?.id && (
-          <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{
-              background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
-              fontFamily: HN, fontSize: '11px', color: '#E84A4A', padding: 0,
-              opacity: deleting ? 0.5 : 1,
-            }}
-          >
-            {deleting ? 'Deleting…' : 'Delete project'}
-          </button>
+          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <button
+              onClick={handleToggleHighlight}
+              disabled={togglingHighlight}
+              style={{
+                background: 'none', border: 'none', cursor: togglingHighlight ? 'default' : 'pointer',
+                fontFamily: HN, fontSize: '11px', color: isHighlight ? '#0A0A0A' : '#999', padding: 0,
+                opacity: togglingHighlight ? 0.5 : 1,
+              }}
+            >
+              {togglingHighlight ? 'Updating…' : isHighlight ? '★ Remove from Highlight' : 'Send to Highlight'}
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{
+                background: 'none', border: 'none', cursor: deleting ? 'default' : 'pointer',
+                fontFamily: HN, fontSize: '11px', color: '#E84A4A', padding: 0,
+                opacity: deleting ? 0.5 : 1,
+              }}
+            >
+              {deleting ? 'Deleting…' : 'Delete project'}
+            </button>
+          </div>
         )}
       </div>
 

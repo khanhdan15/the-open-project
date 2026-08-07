@@ -58,6 +58,7 @@ create table if not exists public.submitted_projects (
   folder_color text,
   is_challenge boolean not null default false,
   is_public    boolean not null default true,
+  is_highlight boolean not null default false,
   submitted_at timestamptz not null default now()
 );
 
@@ -69,6 +70,7 @@ alter table public.submitted_projects add column if not exists meta        jsonb
 alter table public.submitted_projects add column if not exists folder_color text;
 alter table public.submitted_projects add column if not exists is_challenge boolean not null default false;
 alter table public.submitted_projects add column if not exists is_public   boolean not null default true;
+alter table public.submitted_projects add column if not exists is_highlight boolean not null default false;
 
 create index if not exists submitted_projects_user_id_idx on public.submitted_projects(user_id);
 

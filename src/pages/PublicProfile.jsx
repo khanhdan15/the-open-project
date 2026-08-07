@@ -26,6 +26,7 @@ function rowToProject(row) {
     brief: row.brief_data,
     meta: row.meta,
     folderColor: row.folder_color,
+    isHighlight: row.is_highlight,
   }
 }
 
@@ -104,6 +105,27 @@ function CategoryFolder({ discipline, projects, onClick }) {
   )
 }
 
+function HighlightStack({ projects, onSelect }) {
+  if (projects.length === 0) return null
+  return (
+    <div className="highlight-stack">
+      {projects.map((project) => {
+        const thumbnail = project.coverImage || project.images?.[0] || project.image
+        if (!thumbnail) return null
+        return (
+          <div
+            key={project.id}
+            className="highlight-stack-item"
+            onClick={() => onSelect(project)}
+          >
+            <img src={thumbnail} alt={project.title || 'Highlighted project'} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function ProjectCard({ project, onClick }) {
   const { brief, folderColor, coverImage, images, image, title } = project
   const folderName = brief?.folder || 'design'
@@ -149,6 +171,7 @@ export default function PublicProfile() {
   const [notFound, setNotFound] = useState(false)
   const [openFolder, setOpenFolder] = useState(null)
 
+  const highlightProjects = projects.filter((p) => p.isHighlight)
   const shouldGroup = projects.length > 5
   const groupedProjects = shouldGroup
     ? projects.reduce((groups, project) => {
@@ -281,6 +304,27 @@ export default function PublicProfile() {
                   />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Highlight work */}
+          {highlightProjects.length > 0 && (
+            <div style={{ marginTop: '40px' }}>
+              <div style={{
+                fontFamily: HN, fontSize: '11px', fontWeight: 400, color: '#0A0A0A',
+                borderBottom: '1px solid #0A0A0A',
+                paddingBottom: '4px', marginBottom: '16px',
+                display: 'inline-block',
+              }}>
+                highlight work
+              </div>
+              <HighlightStack
+                projects={highlightProjects}
+                onSelect={(project) => {
+                  const i = projects.indexOf(project)
+                  navigate(`/project/${i}`, { state: { project } })
+                }}
+              />
             </div>
           )}
         </div>
