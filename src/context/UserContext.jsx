@@ -128,12 +128,38 @@ export function UserProvider({ children }) {
   }
 
   // Profile — persisted on the Supabase auth user's metadata (name, title,
-  // bio, workExperience, instagram, linkedin, behance, cvUrl).
+  // bio, workExperience, instagram, linkedin, behance, cvUrl) AND mirrored
+  // into the public "profiles" table so other, logged-out visitors can look
+  // it up by slug (auth.users itself is never queryable by other users).
   async function updateProfile(fields) {
     if (!user) return
-    const { data, error } = await supabase.auth.updateUser({ data: fields })
+
+    const base = (fields.name || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+    const slug = base ? `${base}-${user.id.slice(0, 4)}` : user.id.slice(0, 8)
+
+    const { data, error } = await supabase.auth.updateUser({ data: { ...fields, slug } })
     if (data?.user) setUser(data.user)
-    return { data, error }
+    if (error) return { data, error }
+
+    const { error: profileError } = await supabase.from('profiles').upsert({
+      id: user.id,
+      slug,
+      name: fields.name || '',
+      title: fields.title || '',
+      bio: fields.bio || '',
+      work_experience: fields.workExperience || '',
+      instagram: fields.instagram || '',
+      linkedin: fields.linkedin || '',
+      behance: fields.behance || '',
+      cv_url: fields.cvUrl || '',
+      updated_at: new Date().toISOString(),
+    })
+
+    return { data, error: profileError }
   }
 
   // Briefs

@@ -7,6 +7,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import Community from './pages/Community'
 import WeeklyChallenge from './pages/WeeklyChallenge'
 import Settings from './pages/Settings'
+import PublicProfile from './pages/PublicProfile'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/community" element={<Community />} />
       <Route path="/weekly-challenge" element={<WeeklyChallenge />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/u/:slug" element={<PublicProfile />} />
     </Routes>
     </div>
   )

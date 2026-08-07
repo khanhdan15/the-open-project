@@ -99,6 +99,66 @@ create policy "submitted_projects_delete_own"
   on public.submitted_projects for delete
   using (auth.uid() = user_id);
 
+-- ─── profiles ───────────────────────────────────────────────────────────────
+-- Public-readable copy of the bits of a person's profile that need to be
+-- visible to other, logged-out visitors (auth.users itself is never
+-- queryable by other users). slug powers the public /u/:slug share link.
+
+create table if not exists public.profiles (
+  id              uuid primary key references auth.users(id) on delete cascade,
+  slug            text unique,
+  name            text,
+  title           text,
+  bio             text,
+  work_experience text,
+  instagram       text,
+  linkedin        text,
+  behance         text,
+  cv_url          text,
+  updated_at      timestamptz not null default now()
+);
+
+-- In case this table already existed (e.g. from Supabase's default auth
+-- quickstart, which creates a "profiles" table without these columns):
+alter table public.profiles add column if not exists slug            text;
+alter table public.profiles add column if not exists name            text;
+alter table public.profiles add column if not exists title           text;
+alter table public.profiles add column if not exists bio             text;
+alter table public.profiles add column if not exists work_experience text;
+alter table public.profiles add column if not exists instagram       text;
+alter table public.profiles add column if not exists linkedin        text;
+alter table public.profiles add column if not exists behance         text;
+alter table public.profiles add column if not exists cv_url          text;
+alter table public.profiles add column if not exists updated_at      timestamptz not null default now();
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'profiles_slug_key'
+  ) then
+    alter table public.profiles add constraint profiles_slug_key unique (slug);
+  end if;
+end $$;
+
+create index if not exists profiles_slug_idx on public.profiles(slug);
+
+alter table public.profiles enable row level security;
+
+drop policy if exists "profiles_select_public" on public.profiles;
+create policy "profiles_select_public"
+  on public.profiles for select
+  using (true);
+
+drop policy if exists "profiles_insert_own" on public.profiles;
+create policy "profiles_insert_own"
+  on public.profiles for insert
+  with check (auth.uid() = id);
+
+drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own"
+  on public.profiles for update
+  using (auth.uid() = id);
+
 -- ─── Storage: portfolio images ─────────────────────────────────────────────
 -- Public-read bucket. Uploads/updates/deletes are restricted to files under
 -- the authenticated user's own folder: portfolio-images/<user_id>/...

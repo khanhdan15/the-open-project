@@ -223,8 +223,12 @@ export default function Portfolio() {
   }, [user, loading, navigate])
 
   const handleShare = () => {
-    const slug = displayName.toLowerCase().replace(/\s+/g, '') || 'portfolio'
-    navigator.clipboard.writeText(`openruler.app/${slug}`)
+    if (!profile.slug) {
+      setToast('save-first')
+      setTimeout(() => setToast(false), 2500)
+      return
+    }
+    navigator.clipboard.writeText(`${window.location.origin}/u/${profile.slug}`)
     setToast(true)
     setTimeout(() => setToast(false), 2000)
   }
@@ -317,7 +321,12 @@ export default function Portfolio() {
             >
               Share your portfolio
             </button>
-            {toast && (
+            {toast === 'save-first' && (
+              <div style={{ fontFamily: HN, fontSize: '12px', color: '#E84A4A', marginTop: '8px' }}>
+                Save your profile in Settings first to get a share link.
+              </div>
+            )}
+            {toast === true && (
               <div style={{ fontFamily: HN, fontSize: '12px', color: '#0A0A0A', opacity: 0.6, marginTop: '8px' }}>
                 Link copied!
               </div>
