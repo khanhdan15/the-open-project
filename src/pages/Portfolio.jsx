@@ -70,6 +70,38 @@ function ProjectCard({ project, onClick }) {
   )
 }
 
+const FOLDER_COLORS = {
+  'Brand & Identity': '#D4E84A',
+  'Print & Type': '#E84AC8',
+  'Digital & Screen': '#60DDE6',
+  'Image & Direction': '#4AE87A',
+  'Art & Space': '#E8804A',
+}
+
+function CategoryFolder({ discipline, count, onClick }) {
+  const color = FOLDER_COLORS[discipline] || '#D9D9D9'
+  return (
+    <div
+      onClick={onClick}
+      style={{
+        cursor: 'pointer', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', gap: '8px', textAlign: 'center',
+      }}
+    >
+      <svg width="92" height="72" viewBox="0 0 92 72" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="10" width="38" height="14" rx="4" fill={color} />
+        <rect x="4" y="18" width="84" height="50" rx="7" fill={color} stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
+      </svg>
+      <div style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.3 }}>
+        {discipline}
+      </div>
+      <div style={{ fontFamily: HN, fontSize: '10px', color: '#999' }}>
+        {count} project{count === 1 ? '' : 's'}
+      </div>
+    </div>
+  )
+}
+
 function OngoingCard({ savedBrief, onClick }) {
   if (savedBrief.isChallenge === true) {
     return (
@@ -124,6 +156,19 @@ export default function Portfolio() {
   const [toast, setToast] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
+  const [openFolder, setOpenFolder] = useState(null)
+
+  // Once someone has more than 5 projects, group them into folders by
+  // category instead of one long flat grid.
+  const shouldGroup = submittedProjects.length > 5
+  const groupedProjects = shouldGroup
+    ? submittedProjects.reduce((groups, project) => {
+        const key = project.discipline || project.brief?.folder || 'Other'
+        if (!groups[key]) groups[key] = []
+        groups[key].push(project)
+        return groups
+      }, {})
+    : null
 
   const handleProjectAdded = () => {
     setAddedToast(true)
@@ -179,15 +224,40 @@ export default function Portfolio() {
           {/* Project grid */}
           {submittedProjects.length === 0 ? (
             <PlaceholderGrid />
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {submittedProjects.map((project, i) => (
-                <ProjectCard
-                  key={i}
-                  project={project}
-                  onClick={() => navigate(`/project/${i}`, { state: { project } })}
+          ) : shouldGroup && !openFolder ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '24px 12px' }}>
+              {Object.entries(groupedProjects).map(([discipline, projects]) => (
+                <CategoryFolder
+                  key={discipline}
+                  discipline={discipline}
+                  count={projects.length}
+                  onClick={() => setOpenFolder(discipline)}
                 />
               ))}
+            </div>
+          ) : (
+            <div>
+              {shouldGroup && (
+                <button
+                  onClick={() => setOpenFolder(null)}
+                  style={{
+                    fontFamily: HN, fontSize: '11px', color: '#999',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: 0, marginBottom: '16px', display: 'block',
+                  }}
+                >
+                  ‹ All categories
+                </button>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {(shouldGroup ? groupedProjects[openFolder] || [] : submittedProjects).map((project, i) => (
+                  <ProjectCard
+                    key={i}
+                    project={project}
+                    onClick={() => navigate(`/project/${i}`, { state: { project } })}
+                  />
+                ))}
+              </div>
             </div>
           )}
 
