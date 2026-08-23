@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 
-const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
 
 const COMMUNITY_CARDS = [

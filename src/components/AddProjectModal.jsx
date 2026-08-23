@@ -1,15 +1,8 @@
 import { useState, useRef } from 'react'
 import { useUser } from '../context/UserContext'
+import { DISCIPLINES as FOLDER_OPTIONS } from '../lib/theme'
 
-const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
-
-const FOLDER_OPTIONS = [
-  { name: 'Brand & Identity', color: '#D4E84A' },
-  { name: 'Print & Type',     color: '#E84AC8' },
-  { name: 'Digital & Screen', color: '#60DDE6' },
-  { name: 'Image & Direction',color: '#4AE87A' },
-  { name: 'Art & Space',      color: '#E8804A' },
-]
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
 const inputStyle = {
   width: '100%',

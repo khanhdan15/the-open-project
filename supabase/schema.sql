@@ -117,6 +117,7 @@ create table if not exists public.profiles (
   linkedin        text,
   behance         text,
   cv_url          text,
+  avatar_url      text,
   updated_at      timestamptz not null default now()
 );
 
@@ -131,6 +132,7 @@ alter table public.profiles add column if not exists instagram       text;
 alter table public.profiles add column if not exists linkedin        text;
 alter table public.profiles add column if not exists behance         text;
 alter table public.profiles add column if not exists cv_url          text;
+alter table public.profiles add column if not exists avatar_url      text;
 alter table public.profiles add column if not exists updated_at      timestamptz not null default now();
 
 do $$

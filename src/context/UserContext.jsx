@@ -157,10 +157,32 @@ export function UserProvider({ children }) {
       linkedin: fields.linkedin || '',
       behance: fields.behance || '',
       cv_url: fields.cvUrl || '',
+      avatar_url: fields.avatarUrl || '',
       updated_at: new Date().toISOString(),
     })
 
     return { data, error: profileError }
+  }
+
+  // Uploads a new avatar image and saves it onto the existing profile —
+  // merges with whatever's already in user_metadata so other fields aren't
+  // wiped out by the upsert in updateProfile.
+  async function updateAvatar(base64) {
+    if (!user) return
+    const url = await uploadImage(base64)
+    if (!url) return { error: new Error('Avatar upload failed. Please try again.') }
+    const p = user.user_metadata || {}
+    return updateProfile({
+      name: p.name,
+      title: p.title,
+      bio: p.bio,
+      workExperience: p.workExperience,
+      instagram: p.instagram,
+      linkedin: p.linkedin,
+      behance: p.behance,
+      cvUrl: p.cvUrl,
+      avatarUrl: url,
+    })
   }
 
   // Briefs
@@ -270,7 +292,7 @@ export function UserProvider({ children }) {
   return (
     <UserContext.Provider value={{
       user, savedBriefs, submittedProjects, loading,
-      signUp, signIn, signOut, updateProfile,
+      signUp, signIn, signOut, updateProfile, updateAvatar,
       addSavedBrief, removeSavedBrief, addSubmittedProject, removeSubmittedProject,
       updateSubmittedProject, setProjectHighlight,
     }}>

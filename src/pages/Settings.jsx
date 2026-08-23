@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { useUser } from '../context/UserContext'
 
-const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
 const inputStyle = {
   width: '100%',

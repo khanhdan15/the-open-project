@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import AddProjectModal from '../components/AddProjectModal'
 import { useUser } from '../context/UserContext'
+import { disciplineColor } from '../lib/theme'
 
-const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
 const socialLinkStyle = {
   width: '28px', height: '28px', borderRadius: '50%',
@@ -32,142 +33,33 @@ function PlaceholderGrid() {
   )
 }
 
-function ProjectCard({ project, onClick }) {
-  const { brief, folderColor, coverImage, images, image, title } = project
-  const folderName = brief?.folder || 'design'
-  const color = folderColor || brief?.folder_color || '#60DDE6'
+function ProjectCard({ project, index, onClick }) {
+  const { brief, folderColor, coverImage, images, image, title, discipline } = project
+  const folderName = discipline || brief?.folder || 'design'
+  const color = folderColor || brief?.folder_color || disciplineColor(folderName)
   const thumbnail = coverImage || images?.[0] || image
-
-  return (
-    <div onClick={onClick} style={{
-      background: color,
-      borderRadius: '12px', padding: '16px', cursor: 'pointer',
-      display: 'flex', flexDirection: 'column', gap: '12px',
-    }}>
-      <div style={{ fontFamily: HN, fontSize: '18px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.2 }}>
-        {title || brief?.title || 'Untitled Project'}
-      </div>
-
-      <div style={{
-        background: 'rgba(255,255,255,0.4)', borderRadius: '8px',
-        width: '100%', aspectRatio: '4/3', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        {thumbnail ? (
-          <img src={thumbnail} alt={brief?.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-        ) : (
-          <span style={{ fontFamily: HN, fontSize: '12px', color: 'rgba(0,0,0,0.4)' }}>your submission</span>
-        )}
-      </div>
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontFamily: HN, fontSize: '12px', color: 'rgba(0,0,0,0.6)' }}>
-          .{folderName.toLowerCase()}
-        </span>
-        <span style={{ fontFamily: HN, fontSize: '18px', color: '#0A0A0A' }}>→</span>
-      </div>
-    </div>
-  )
-}
-
-const FOLDER_COLORS = {
-  'Brand & Identity': '#D4E84A',
-  'Print & Type': '#E84AC8',
-  'Digital & Screen': '#60DDE6',
-  'Image & Direction': '#4AE87A',
-  'Art & Space': '#E8804A',
-}
-
-function CategoryFolder({ discipline, projects, onClick }) {
-  const color = FOLDER_COLORS[discipline] || '#D9D9D9'
-  const count = projects.length
-  const thumbs = projects
-    .map((p) => p.coverImage || p.images?.[0] || p.image)
-    .filter(Boolean)
-    .slice(0, 3)
+  const displayTitle = title || brief?.title || 'Untitled'
 
   return (
     <div
+      className="card-pop"
       onClick={onClick}
-      style={{
-        cursor: 'pointer', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', gap: '10px', textAlign: 'center', width: '170px',
-      }}
+      style={{ cursor: 'pointer', animationDelay: `${Math.min(index, 14) * 90}ms` }}
     >
-      <div style={{ position: 'relative', width: '170px', height: '130px' }}>
-        {/* Photo peeks — mostly tucked behind the folder, just a sliver showing */}
-        <div style={{
-          position: 'absolute', top: '28px', left: 0, right: 0, height: '50px',
-          display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1,
-        }}>
-          {thumbs.map((src, i) => {
-            const n = thumbs.length
-            const angle = (i - (n - 1) / 2) * 11
-            const offsetX = (i - (n - 1) / 2) * 42
-            return (
-              <img
-                key={i}
-                src={src}
-                alt=""
-                style={{
-                  position: 'absolute',
-                  width: '42px', height: '42px', objectFit: 'cover',
-                  borderRadius: '5px', border: '2px solid #FFFFFF',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-                  transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
-                }}
-              />
-            )
-          })}
-        </div>
-
-        {/* Folder tab */}
-        <div style={{
-          position: 'absolute', top: '46px', left: '10px',
-          width: '66px', height: '18px', background: color,
-          borderRadius: '8px 8px 0 0', zIndex: 2,
-        }} />
-        {/* Folder body */}
-        <div style={{
-          position: 'absolute', top: '60px', left: 0, right: 0, height: '70px',
-          background: color, borderRadius: '10px',
-          border: '1px solid rgba(0,0,0,0.12)', boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
-          zIndex: 2,
-        }} />
+      <div style={{
+        fontFamily: HN, fontSize: '12px', color: '#0A0A0A',
+        textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.02em',
+      }}>
+        No {index + 1} - {displayTitle}
       </div>
-      <div style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.3 }}>
-        {discipline}
-      </div>
-      <div style={{ fontFamily: HN, fontSize: '10px', color: '#999' }}>
-        {count} project{count === 1 ? '' : 's'}
-      </div>
-    </div>
-  )
-}
-
-function HighlightStack({ projects, onSelect }) {
-  if (projects.length === 0) return null
-  return (
-    <div className="highlight-stack-wrap">
-      <div className="highlight-stack">
-        {projects.map((project) => {
-          const thumbnail = project.coverImage || project.images?.[0] || project.image
-          if (!thumbnail) return null
-          return (
-            <div
-              key={project.id}
-              className="highlight-stack-item"
-              onClick={() => onSelect(project)}
-            >
-              <div className="highlight-stack-item-media">
-                <img src={thumbnail} alt={project.title || 'Highlighted project'} />
-              </div>
-              <div className="highlight-stack-item-caption">
-                {project.title || 'Untitled'}
-              </div>
-            </div>
-          )
-        })}
+      <div style={{
+        background: thumbnail ? '#EDEDED' : color,
+        aspectRatio: '3 / 4', overflow: 'hidden',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {thumbnail && (
+          <img src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        )}
       </div>
     </div>
   )
@@ -221,26 +113,29 @@ function OngoingCard({ savedBrief, onClick }) {
 
 export default function Portfolio() {
   const navigate = useNavigate()
-  const { user, submittedProjects, savedBriefs, loading } = useUser()
+  const { user, submittedProjects, savedBriefs, loading, updateAvatar } = useUser()
   const profile = user?.user_metadata || {}
   const displayName = profile.name || profile.username || ''
   const [toast, setToast] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [addedToast, setAddedToast] = useState(false)
-  const [openFolder, setOpenFolder] = useState(null)
+  const [tab, setTab] = useState('projects')
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef(null)
 
-  // Once someone has more than 5 projects, group them into folders by
-  // category instead of one long flat grid.
-  const highlightProjects = submittedProjects.filter((p) => p.isHighlight)
-  const shouldGroup = submittedProjects.length > 5
-  const groupedProjects = shouldGroup
-    ? submittedProjects.reduce((groups, project) => {
-        const key = project.discipline || project.brief?.folder || 'Other'
-        if (!groups[key]) groups[key] = []
-        groups[key].push(project)
-        return groups
-      }, {})
-    : null
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !file.type.startsWith('image/')) return
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (evt) => resolve(evt.target.result)
+      reader.readAsDataURL(file)
+    })
+    setAvatarUploading(true)
+    await updateAvatar(base64)
+    setAvatarUploading(false)
+    e.target.value = ''
+  }
 
   const handleProjectAdded = () => {
     setAddedToast(true)
@@ -262,177 +157,223 @@ export default function Portfolio() {
     setTimeout(() => setToast(false), 2000)
   }
 
+  const ongoing = savedBriefs.filter((b) => b.status === 'ongoing' || !b.status)
+  const [onGoing, ...restSaved] = ongoing
+
+  const tabStyle = (active) => ({
+    background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+    fontFamily: HN, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.08em',
+    color: '#0A0A0A',
+    borderBottom: active ? '1px solid #0A0A0A' : '1px solid transparent',
+    paddingBottom: '3px',
+  })
+
   return (
     <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
-      <div className="responsive-columns" style={{ display: 'flex', gap: '40px', padding: '40px', flex: 1 }}>
-
-        {/* LEFT COLUMN */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-
-          {/* Profile header */}
-          <div style={{ marginBottom: '32px' }}>
-            <div className="responsive-hero-name" style={{
-              fontFamily: HN, fontSize: '48px', fontWeight: 700,
-              color: '#0A0A0A', textTransform: 'uppercase',
-              lineHeight: 1.0, marginBottom: '4px',
-            }}>
-              {displayName || 'Your Name'}
-            </div>
-            {profile.bio && (
-              <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.6, maxWidth: '480px', marginBottom: '10px' }}>
-                {profile.bio}
-              </div>
-            )}
-            <button
-              onClick={() => navigate('/settings')}
-              style={{
-                fontFamily: HN, fontSize: '11px', color: '#999',
-                background: 'none', border: 'none', textDecoration: 'underline',
-                cursor: 'pointer', padding: 0,
-              }}
-            >
-              Edit profile
-            </button>
+      {/* Name / title / social + tab nav */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        flexWrap: 'wrap', gap: '16px', padding: '40px 40px 0',
+      }}>
+        <div>
+          <div className="responsive-hero-name" style={{
+            fontFamily: HN, fontSize: '44px', fontWeight: 700,
+            color: '#0A0A0A', textTransform: 'uppercase', lineHeight: 1.0, marginBottom: '6px',
+          }}>
+            {displayName || 'Your Name'}
           </div>
-
-          {/* Project grid */}
-          {submittedProjects.length === 0 ? (
-            <PlaceholderGrid />
-          ) : shouldGroup && !openFolder ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '32px 16px' }}>
-              {Object.entries(groupedProjects).map(([discipline, projects]) => (
-                <CategoryFolder
-                  key={discipline}
-                  discipline={discipline}
-                  projects={projects}
-                  onClick={() => setOpenFolder(discipline)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div>
-              {shouldGroup && (
-                <button
-                  onClick={() => setOpenFolder(null)}
-                  style={{
-                    fontFamily: HN, fontSize: '11px', color: '#999',
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 0, marginBottom: '16px', display: 'block',
-                  }}
-                >
-                  ‹ All categories
-                </button>
-              )}
-              <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                {(shouldGroup ? groupedProjects[openFolder] || [] : submittedProjects).map((project, i) => (
-                  <ProjectCard
-                    key={i}
-                    project={project}
-                    onClick={() => navigate(`/project/${i}`, { state: { project } })}
-                  />
-                ))}
-              </div>
+          {profile.title && (
+            <div style={{ fontFamily: HN, fontSize: '11px', textTransform: 'uppercase', color: '#0A0A0A', marginBottom: '2px' }}>
+              {profile.title}
             </div>
           )}
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+            {profile.instagram && (
+              <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={socialLinkStyle}>Ig</a>
+            )}
+            {profile.linkedin && (
+              <a href={profile.linkedin} target="_blank" rel="noreferrer" style={socialLinkStyle}>Li</a>
+            )}
+            {profile.behance && (
+              <a href={profile.behance} target="_blank" rel="noreferrer" style={socialLinkStyle}>Be</a>
+            )}
+            {profile.cvUrl && (
+              <a href={profile.cvUrl} target="_blank" rel="noreferrer" style={socialLinkStyle}>CV</a>
+            )}
+          </div>
+        </div>
 
-          {/* Highlight work */}
-          {highlightProjects.length > 0 && (
-            <div style={{ marginTop: '40px' }}>
-              <div style={{
-                fontFamily: HN, fontSize: '11px', fontWeight: 400, color: '#0A0A0A',
-                borderBottom: '1px solid #0A0A0A',
-                paddingBottom: '4px', marginBottom: '16px',
-                display: 'inline-block',
-              }}>
-                highlight work
-              </div>
-              <HighlightStack
-                projects={highlightProjects}
-                onSelect={(project) => {
-                  const i = submittedProjects.indexOf(project)
-                  navigate(`/project/${i}`, { state: { project } })
-                }}
-              />
-            </div>
-          )}
-
-          {/* Share portfolio */}
-          <div style={{ marginTop: '48px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '14px' }}>
+          <div style={{ display: 'flex', gap: '20px' }}>
+            <button onClick={() => setTab('projects')} style={tabStyle(tab === 'projects')}>Projects</button>
+            <button onClick={() => setTab('about')} style={tabStyle(tab === 'about')}>About</button>
+          </div>
+          <div>
             <button
               onClick={handleShare}
               style={{
-                fontFamily: HN, fontSize: '13px', color: '#0A0A0A',
+                fontFamily: HN, fontSize: '11px', color: '#0A0A0A',
                 background: 'transparent', border: '1px solid #0A0A0A',
-                padding: '12px 32px', width: 'fit-content',
-                cursor: 'pointer', borderRadius: 0,
+                padding: '8px 20px', cursor: 'pointer', borderRadius: '999px',
+                textTransform: 'uppercase', letterSpacing: '0.04em',
               }}
             >
-              Share your portfolio
+              Share profile
             </button>
             {toast === 'save-first' && (
-              <div style={{ fontFamily: HN, fontSize: '12px', color: '#E84A4A', marginTop: '8px' }}>
+              <div style={{ fontFamily: HN, fontSize: '11px', color: '#E84A4A', marginTop: '8px', textAlign: 'right' }}>
                 Save your profile in Settings first to get a share link.
               </div>
             )}
             {toast === true && (
-              <div style={{ fontFamily: HN, fontSize: '12px', color: '#0A0A0A', opacity: 0.6, marginTop: '8px' }}>
+              <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', opacity: 0.6, marginTop: '8px', textAlign: 'right' }}>
                 Link copied!
               </div>
             )}
           </div>
         </div>
+      </div>
 
-        {/* RIGHT COLUMN */}
-        <div style={{ width: '220px', flexShrink: 0 }}>
-
-          {/* Designer title + social icons */}
-          <div style={{ marginBottom: '32px' }}>
-            {profile.title && (
-              <div style={{ fontFamily: HN, fontSize: '13px', fontWeight: 400, color: '#0A0A0A', marginBottom: '12px' }}>
-                {profile.title}
+      {tab === 'about' ? (
+        /* ─── About tab ────────────────────────────────────────────── */
+        <div style={{ padding: '40px 40px 60px', maxWidth: '720px' }}>
+          <div
+            onClick={() => avatarInputRef.current?.click()}
+            title="Click to upload a photo"
+            style={{
+              width: '110px', height: '110px', borderRadius: '50%',
+              background: '#D4D4D4', marginBottom: '24px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', overflow: 'hidden', position: 'relative',
+            }}
+          >
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt={displayName || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            ) : (
+              <span style={{ fontFamily: HN, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999' }}>
+                {avatarUploading ? 'uploading…' : 'avatar'}
+              </span>
+            )}
+            {avatarUploading && profile.avatarUrl && (
+              <div style={{
+                position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.6)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: HN, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#0A0A0A',
+              }}>
+                uploading…
               </div>
             )}
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {profile.instagram && (
-                <a href={`https://instagram.com/${profile.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={socialLinkStyle}>Ig</a>
-              )}
-              {profile.linkedin && (
-                <a href={profile.linkedin} target="_blank" rel="noreferrer" style={socialLinkStyle}>Li</a>
-              )}
-              {profile.behance && (
-                <a href={profile.behance} target="_blank" rel="noreferrer" style={socialLinkStyle}>Be</a>
-              )}
-              {profile.cvUrl && (
-                <a href={profile.cvUrl} target="_blank" rel="noreferrer" style={socialLinkStyle}>CV</a>
-              )}
+          </div>
+          <input ref={avatarInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
+          <div style={{ fontFamily: HN, fontSize: '13px', lineHeight: 1.8, color: '#0A0A0A', whiteSpace: 'pre-wrap' }}>
+            {profile.bio || 'Add a bio in Settings to introduce yourself.'}
+          </div>
+          {profile.workExperience && (
+            <div style={{ marginTop: '32px', borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '24px' }}>
+              <div style={{ fontFamily: HN, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999', marginBottom: '10px' }}>
+                Work Experience
+              </div>
+              <div style={{ fontFamily: HN, fontSize: '13px', lineHeight: 1.8, color: '#0A0A0A', whiteSpace: 'pre-wrap' }}>
+                {profile.workExperience}
+              </div>
             </div>
+          )}
+          <div style={{ marginTop: '32px' }}>
+            {profile.cvUrl ? (
+              <a
+                href={profile.cvUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  display: 'inline-block',
+                  fontFamily: HN, fontSize: '11px', color: '#0A0A0A',
+                  background: 'transparent', border: '1px solid #0A0A0A',
+                  padding: '10px 24px', cursor: 'pointer', borderRadius: '999px',
+                  textTransform: 'uppercase', letterSpacing: '0.04em', textDecoration: 'none',
+                }}
+              >
+                Download CV
+              </a>
+            ) : (
+              <div style={{ fontFamily: HN, fontSize: '11px', color: '#999' }}>
+                Add a CV link in Settings to let people download it.
+              </div>
+            )}
           </div>
 
-          {/* Ongoing projects */}
-          <div>
-            <div style={{
-              fontFamily: HN, fontSize: '11px', fontWeight: 400, color: '#0A0A0A',
-              borderBottom: '1px solid #0A0A0A',
-              paddingBottom: '4px', marginBottom: '12px',
-              display: 'inline-block',
-            }}>
-              on-going project
-            </div>
+          <button
+            onClick={() => navigate('/settings')}
+            style={{
+              fontFamily: HN, fontSize: '11px', color: '#999', marginTop: '24px',
+              background: 'none', border: 'none', textDecoration: 'underline', cursor: 'pointer', padding: 0,
+            }}
+          >
+            Edit profile
+          </button>
+        </div>
+      ) : (
+        /* ─── Projects tab ─────────────────────────────────────────── */
+        <div className="responsive-columns" style={{ display: 'flex', flex: 1 }}>
 
-            {(() => {
-              const ongoing = savedBriefs.filter(b => b.status === 'ongoing' || !b.status)
-              if (ongoing.length === 0) {
-                return (
-                  <div style={{ background: '#60DDE6', borderRadius: '12px', padding: '12px' }}>
-                    <div style={{ fontFamily: HN, fontSize: '16px', fontWeight: 400, color: 'rgba(0,0,0,0.35)' }}>
-                      project title
-                    </div>
-                  </div>
-                )
-              }
-              return ongoing.map((brief, i) => (
+          {/* LEFT: project grid */}
+          <div style={{ flex: 1, minWidth: 0, padding: '32px 40px 40px' }}>
+            {submittedProjects.length === 0 ? (
+              <PlaceholderGrid />
+            ) : (
+              <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px 16px' }}>
+                {submittedProjects.map((project, i) => (
+                  <ProjectCard
+                    key={i}
+                    project={project}
+                    index={i}
+                    onClick={() => navigate(`/project/${i}`, { state: { project } })}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: gray sidebar panel, flush to the page edge */}
+          <div style={{ width: '340px', flexShrink: 0, background: '#D4D4D4', padding: '32px', boxSizing: 'border-box' }}>
+
+            {/* On-going project */}
+            <div style={{
+              fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
+              textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '16px', lineHeight: 1.3,
+            }}>
+              On-going project
+            </div>
+            {onGoing ? (
+              <div
+                onClick={() => onGoing.isChallenge
+                  ? navigate('/weekly-challenge', { state: { savedChallenge: onGoing } })
+                  : navigate('/brief', { state: { folderName: onGoing.discipline, categoryColor: onGoing.categoryColor, savedBrief: onGoing } })
+                }
+                style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px', cursor: 'pointer', display: 'flex', alignItems: 'flex-end' }}
+              >
+                <span style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A' }}>{onGoing.title || 'Untitled Brief'}</span>
+              </div>
+            ) : (
+              <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px' }}>
+                <span style={{ fontFamily: HN, fontSize: '12px', color: 'rgba(0,0,0,0.35)' }}>project title</span>
+              </div>
+            )}
+
+            {/* Saved projects */}
+            <div style={{
+              fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
+              textTransform: 'uppercase', letterSpacing: '0.02em', margin: '32px 0 16px', lineHeight: 1.3,
+            }}>
+              Saved projects
+            </div>
+            {restSaved.length === 0 ? (
+              <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px' }}>
+                <span style={{ fontFamily: HN, fontSize: '11px', color: 'rgba(0,0,0,0.35)' }}>nothing saved yet</span>
+              </div>
+            ) : (
+              restSaved.map((brief, i) => (
                 <OngoingCard
                   key={i}
                   savedBrief={brief}
@@ -442,34 +383,34 @@ export default function Portfolio() {
                   }
                 />
               ))
-            })()}
-          </div>
+            )}
 
-          {/* Add project manually */}
-          {addedToast && (
-            <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', opacity: 0.6, marginBottom: '8px', textAlign: 'center' }}>
-              Project added to portfolio
-            </div>
-          )}
-          <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <button
-              onClick={() => setModalOpen(true)}
-              style={{
-                width: '64px', height: '64px', borderRadius: '50%',
-                border: '1.5px solid rgba(0,0,0,0.3)',
-                background: 'transparent',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                cursor: 'pointer', padding: 0,
-              }}
-            >
-              <span style={{ fontFamily: HN, fontSize: '24px', fontWeight: 200, color: 'rgba(0,0,0,0.5)', lineHeight: 1 }}>+</span>
-            </button>
-            <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', textAlign: 'center', marginTop: '6px' }}>
-              add project manually
+            {/* Add project manually */}
+            {addedToast && (
+              <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', opacity: 0.6, margin: '16px 0 4px', textAlign: 'center' }}>
+                Project added to portfolio
+              </div>
+            )}
+            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <button
+                onClick={() => setModalOpen(true)}
+                style={{
+                  width: '48px', height: '48px', borderRadius: '50%',
+                  border: '1.5px solid rgba(0,0,0,0.3)',
+                  background: 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', padding: 0,
+                }}
+              >
+                <span style={{ fontFamily: HN, fontSize: '20px', fontWeight: 200, color: 'rgba(0,0,0,0.5)', lineHeight: 1 }}>+</span>
+              </button>
+              <div style={{ fontFamily: HN, fontSize: '10px', color: '#0A0A0A', textAlign: 'center', marginTop: '6px' }}>
+                add project manually
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {modalOpen && (
         <AddProjectModal

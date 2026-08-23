@@ -1,24 +1,23 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
-import { DISCIPLINES } from '../lib/theme'
+import { INDUSTRIES } from '../lib/theme'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-function DisciplineCard({ discipline, isSelected, onSelect }) {
+function IndustryCard({ industry, isSelected, onSelect }) {
   const [hovered, setHovered] = useState(false)
-  const [line1, line2] = discipline.name.split(' & ')
 
   return (
     <div
-      onClick={() => onSelect(discipline.name)}
+      onClick={() => onSelect(industry.name)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        flex: 1,
-        minHeight: '340px',
-        background: discipline.color,
-        border: isSelected ? `2px solid ${discipline.textColor}` : 'none',
+        flex: '1 1 220px',
+        minHeight: '160px',
+        background: industry.color,
+        border: isSelected ? '2px solid #0A0A0A' : 'none',
         borderRadius: '20px',
         boxSizing: 'border-box',
         cursor: 'pointer',
@@ -27,22 +26,22 @@ function DisciplineCard({ discipline, isSelected, onSelect }) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '18px 16px',
+        padding: '16px 18px',
         userSelect: 'none',
       }}
     >
       <div style={{
         fontFamily: HN, fontSize: '13px', fontWeight: 700,
         textTransform: 'uppercase', letterSpacing: '0.02em',
-        color: discipline.textColor, lineHeight: 1.4,
+        color: '#0A0A0A', lineHeight: 1.4,
       }}>
-        {line1}{line2 ? <> & {line2}</> : ''}
+        {industry.name}
       </div>
       <div>
-        {discipline.items.map((item) => (
+        {industry.items.map((item) => (
           <div key={item} style={{
-            fontFamily: HN, fontSize: '10px', color: discipline.textColor,
-            opacity: 0.85, lineHeight: 1.7,
+            fontFamily: HN, fontSize: '10px', color: '#0A0A0A',
+            opacity: 0.7, lineHeight: 1.6,
           }}>
             . {item}
           </div>
@@ -52,13 +51,14 @@ function DisciplineCard({ discipline, isSelected, onSelect }) {
   )
 }
 
-export default function FolderSelect() {
+export default function IndustrySelect() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [selected, setSelected] = useState(null)
   const [shaking, setShaking] = useState(false)
-  const navigate = useNavigate()
   const btnRef = useRef(null)
 
-  const handleSelect = (name) => setSelected((prev) => (prev === name ? null : name))
+  const { folderName = 'Digital & Screen', folderColor = '#82DFFD' } = location.state || {}
 
   const handleGo = () => {
     if (!selected) {
@@ -66,8 +66,7 @@ export default function FolderSelect() {
       setTimeout(() => setShaking(false), 400)
       return
     }
-    const discipline = DISCIPLINES.find((d) => d.name === selected)
-    navigate('/new/industry', { state: { folderName: discipline.name, folderColor: discipline.color } })
+    navigate('/new/timeline', { state: { folderName, folderColor, industry: selected } })
   }
 
   return (
@@ -88,18 +87,18 @@ export default function FolderSelect() {
           fontFamily: HN, fontSize: '10px', letterSpacing: '0.08em', color: '#0A0A0A',
           marginBottom: '20px', textTransform: 'uppercase',
         }}>
-          <span>01 -</span>
-          <span>Select your discipline</span>
+          <span>02 -</span>
+          <span>Select your industry</span>
           <span>/3</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '24px' }}>
-          {DISCIPLINES.map((d) => (
-            <DisciplineCard
-              key={d.name}
-              discipline={d}
-              isSelected={selected === d.name}
-              onSelect={handleSelect}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '24px' }}>
+          {INDUSTRIES.map((ind) => (
+            <IndustryCard
+              key={ind.name}
+              industry={ind}
+              isSelected={selected === ind.name}
+              onSelect={setSelected}
             />
           ))}
         </div>

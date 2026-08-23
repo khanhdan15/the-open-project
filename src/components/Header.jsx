@@ -1,17 +1,16 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import Logo from './Logo'
+import briefIcon from '../assets/brief-icon.png'
 
-const HN    = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
-const SERIF = '"BIZ UDMincho", serif'
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-export default function Header({ showRegenerate = false, onRegenerate }) {
+export default function Header() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const { user, signOut } = useUser()
 
-  const isBriefGen  = pathname === '/' || pathname === '/brief'
-  const isCommunity = pathname === '/community' || pathname === '/weekly-challenge'
-  const isAccount   = ['/portfolio', '/settings'].includes(pathname)
+  const isAccount = ['/portfolio', '/settings'].includes(pathname)
 
   const handleAccountClick = () => {
     if (user) navigate('/portfolio')
@@ -23,62 +22,76 @@ export default function Header({ showRegenerate = false, onRegenerate }) {
     navigate('/')
   }
 
-  const btnBase = {
-    fontFamily: HN,
-    fontSize: '11px',
-    fontWeight: '500',
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    border: '1px solid #0A0A0A',
-    borderRadius: '4px',
-    padding: '6px 14px',
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
+  const cellStyle = {
+    display: 'flex', alignItems: 'center',
+    borderRight: '1px solid rgba(0,0,0,0.15)',
+    boxSizing: 'border-box',
   }
-
-  const btnActive   = { ...btnBase, background: '#0A0A0A', color: '#FFFFFF' }
-  const btnInactive = { ...btnBase, background: 'transparent', color: '#0A0A0A' }
 
   return (
     <header className="app-header" style={{
-      position: 'relative', display: 'flex', alignItems: 'center',
-      justifyContent: 'flex-end',
-      width: '100%', padding: '12px 20px', borderBottom: '1px solid #0A0A0A',
+      display: 'flex', width: '100%', height: '56px',
+      borderBottom: '1px solid rgba(0,0,0,0.15)',
       background: '#FFFFFF', boxSizing: 'border-box',
     }}>
 
-      {/* Left: Brief Generator + Community */}
-      <div className="app-header-left" style={{ position: 'absolute', left: '20px', display: 'flex', gap: '6px' }}>
-        <button onClick={() => navigate('/')}
-          style={isBriefGen ? btnActive : btnInactive}>
-          Brief Generator
-        </button>
-        <button onClick={() => navigate('/community')}
-          style={isCommunity ? btnActive : btnInactive}>
-          Community
-        </button>
+      {/* Logo cell */}
+      <div
+        onClick={() => navigate('/')}
+        className="app-header-left"
+        style={{ ...cellStyle, width: '90px', flexShrink: 0, padding: '0 10px', cursor: 'pointer' }}
+      >
+        <Logo size={26} />
       </div>
 
-      {/* Center: OPEN RULER */}
-      <div className="app-header-center" style={{
-        position: 'absolute', left: '50%', transform: 'translateX(-50%)',
-        textAlign: 'center', fontFamily: SERIF, lineHeight: 1.1,
-      }}>
-        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>OPEN</div>
-        <div style={{ fontSize: '14px', letterSpacing: '0.05em' }}>RULER</div>
-      </div>
-
-      {/* Right: Account or Sign out */}
-      <div className="app-header-right" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+      {/* Nav cell — kept mostly open, per the identity mockups. Community
+          is hidden for now while the visual pass is in progress. */}
+      <div className="app-header-center" style={{ ...cellStyle, flex: 1, padding: '0 24px', gap: '16px' }}>
         {user && (
-          <button onClick={handleSignOut} style={btnInactive}>
+          <button
+            onClick={handleSignOut}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontFamily: HN, fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase',
+              color: '#999', marginLeft: 'auto',
+            }}
+          >
             Sign out
           </button>
         )}
-        <button onClick={handleAccountClick}
-          style={isAccount ? btnActive : btnInactive}>
-          {user ? 'Account' : 'Sign in'}
+      </div>
+
+      {/* Brief generator icon cell */}
+      <div className="app-header-right" style={{ ...cellStyle, width: '110px', flexShrink: 0, justifyContent: 'center' }}>
+        <button
+          onClick={() => navigate('/new')}
+          title="Start a new brief"
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <img src={briefIcon} alt="Start a new brief" style={{ height: '30px', width: 'auto', display: 'block' }} />
         </button>
+      </div>
+
+      {/* Account cell */}
+      <div
+        onClick={handleAccountClick}
+        style={{
+          width: '190px', flexShrink: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+        }}
+      >
+        <span style={{
+          fontFamily: HN, fontSize: '20px', letterSpacing: '0.02em', textTransform: 'lowercase',
+          color: '#0A0A0A',
+          padding: '2px 16px', borderRadius: '999px',
+          background: isAccount ? '#83C7F9' : 'transparent',
+        }}>
+          account
+        </span>
       </div>
 
     </header>

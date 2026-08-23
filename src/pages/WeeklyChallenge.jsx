@@ -4,7 +4,7 @@ import Header from '../components/Header'
 import { useUser } from '../context/UserContext'
 import { generateChallengeBrief } from '../lib/generateBrief'
 
-const HN = '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
+const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
 
 // Change this each week to set the discipline for the live challenge

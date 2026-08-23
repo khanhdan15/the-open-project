@@ -1,64 +1,49 @@
 import { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
-import { DISCIPLINES } from '../lib/theme'
+import { TIMELINES } from '../lib/theme'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-function DisciplineCard({ discipline, isSelected, onSelect }) {
+function TimelineCard({ timeline, isSelected, onSelect }) {
   const [hovered, setHovered] = useState(false)
-  const [line1, line2] = discipline.name.split(' & ')
-
   return (
     <div
-      onClick={() => onSelect(discipline.name)}
+      onClick={() => onSelect(timeline.id)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
         flex: 1,
         minHeight: '340px',
-        background: discipline.color,
-        border: isSelected ? `2px solid ${discipline.textColor}` : 'none',
-        borderRadius: '20px',
+        background: timeline.color,
+        border: isSelected ? '2px solid #0A0A0A' : 'none',
         boxSizing: 'border-box',
+        borderRadius: '20px',
         cursor: 'pointer',
         transform: isSelected ? 'scale(1.02)' : hovered ? 'scale(1.01)' : 'none',
         transition: 'transform 0.15s ease',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '18px 16px',
-        userSelect: 'none',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        gap: '6px',
       }}
     >
-      <div style={{
-        fontFamily: HN, fontSize: '13px', fontWeight: 700,
-        textTransform: 'uppercase', letterSpacing: '0.02em',
-        color: discipline.textColor, lineHeight: 1.4,
-      }}>
-        {line1}{line2 ? <> & {line2}</> : ''}
+      <div style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', color: '#0A0A0A' }}>
+        {timeline.name}
       </div>
-      <div>
-        {discipline.items.map((item) => (
-          <div key={item} style={{
-            fontFamily: HN, fontSize: '10px', color: discipline.textColor,
-            opacity: 0.85, lineHeight: 1.7,
-          }}>
-            . {item}
-          </div>
-        ))}
+      <div style={{ fontFamily: HN, fontSize: '9px', letterSpacing: '0.06em', color: 'rgba(0,0,0,0.6)' }}>
+        ({timeline.duration})
       </div>
     </div>
   )
 }
 
-export default function FolderSelect() {
+export default function TimelineSelect() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [selected, setSelected] = useState(null)
   const [shaking, setShaking] = useState(false)
-  const navigate = useNavigate()
   const btnRef = useRef(null)
 
-  const handleSelect = (name) => setSelected((prev) => (prev === name ? null : name))
+  const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry } = location.state || {}
 
   const handleGo = () => {
     if (!selected) {
@@ -66,8 +51,7 @@ export default function FolderSelect() {
       setTimeout(() => setShaking(false), 400)
       return
     }
-    const discipline = DISCIPLINES.find((d) => d.name === selected)
-    navigate('/new/industry', { state: { folderName: discipline.name, folderColor: discipline.color } })
+    navigate('/brief', { state: { folderName, folderColor, industry, timeline: selected } })
   }
 
   return (
@@ -88,18 +72,18 @@ export default function FolderSelect() {
           fontFamily: HN, fontSize: '10px', letterSpacing: '0.08em', color: '#0A0A0A',
           marginBottom: '20px', textTransform: 'uppercase',
         }}>
-          <span>01 -</span>
-          <span>Select your discipline</span>
+          <span>03 -</span>
+          <span>Select your timeline</span>
           <span>/3</span>
         </div>
 
         <div style={{ display: 'flex', gap: '24px' }}>
-          {DISCIPLINES.map((d) => (
-            <DisciplineCard
-              key={d.name}
-              discipline={d}
-              isSelected={selected === d.name}
-              onSelect={handleSelect}
+          {TIMELINES.map((t) => (
+            <TimelineCard
+              key={t.id}
+              timeline={t}
+              isSelected={selected === t.id}
+              onSelect={setSelected}
             />
           ))}
         </div>
