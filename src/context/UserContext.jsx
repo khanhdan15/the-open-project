@@ -185,6 +185,28 @@ export function UserProvider({ children }) {
     })
   }
 
+  // Uploads a new CV file (any type — PDF, DOC, etc.) to the same
+  // per-user storage folder as portfolio images, then saves the resulting
+  // URL onto the profile. Same merge-with-existing pattern as updateAvatar
+  // so this doesn't wipe out unrelated fields.
+  async function updateCV(base64) {
+    if (!user) return
+    const url = await uploadImage(base64)
+    if (!url) return { error: new Error('CV upload failed. Please try again.') }
+    const p = user.user_metadata || {}
+    return updateProfile({
+      name: p.name,
+      title: p.title,
+      bio: p.bio,
+      workExperience: p.workExperience,
+      instagram: p.instagram,
+      linkedin: p.linkedin,
+      behance: p.behance,
+      avatarUrl: p.avatarUrl,
+      cvUrl: url,
+    })
+  }
+
   // Briefs
   async function addSavedBrief(brief) {
     if (!user) return
@@ -292,7 +314,7 @@ export function UserProvider({ children }) {
   return (
     <UserContext.Provider value={{
       user, savedBriefs, submittedProjects, loading,
-      signUp, signIn, signOut, updateProfile, updateAvatar,
+      signUp, signIn, signOut, updateProfile, updateAvatar, updateCV,
       addSavedBrief, removeSavedBrief, addSubmittedProject, removeSubmittedProject,
       updateSubmittedProject, setProjectHighlight,
     }}>

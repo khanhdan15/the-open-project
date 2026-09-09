@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useUser } from '../context/UserContext'
 import { DISCIPLINES as FOLDER_OPTIONS } from '../lib/theme'
 
@@ -194,14 +195,20 @@ export default function AddProjectModal({ onClose, onAdded, existingProject }) {
     onClose()
   }
 
-  return (
+  // Portaled straight onto <body> — the page wrappers this modal opens from
+  // (Portfolio.jsx / ProjectDetail.jsx) use a `.page-enter` CSS-transform
+  // load animation, and any transformed ancestor becomes the containing
+  // block for `position: fixed` descendants. Left un-portaled, "fixed"
+  // ends up relative to that animated wrapper instead of the real
+  // viewport, which is why the modal rendered low/off-center on mobile.
+  return createPortal(
     <div
       onClick={(e) => e.target === e.currentTarget && onClose()}
       style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(0,0,0,0.5)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 100,
+        zIndex: 1000,
       }}
     >
       <div className="responsive-page-padding" style={{
@@ -389,6 +396,7 @@ export default function AddProjectModal({ onClose, onAdded, existingProject }) {
           {submitting ? 'Saving…' : isEditing ? 'Save Changes' : 'Add to Portfolio →'}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

@@ -184,6 +184,36 @@ button { cursor: pointer; }
   opacity: 1;
 }
 
+/* Cursor-follow spotlight hover — a soft radial glow that tracks the
+   mouse position across a card, fading in only while hovering. Position
+   comes from --mouse-x/--mouse-y, set on mousemove (see lib/spotlight.js).
+   z-index: -1 on a stacking-context parent (position:relative + z-index:0)
+   paints it above the card's own background but below its real content. */
+.spotlight-card {
+  position: relative;
+  z-index: 0;
+}
+.spotlight-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.4), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.spotlight-card:hover::after {
+  opacity: 1;
+}
+
+/* Header account label — text by default, swaps to an icon on mobile
+   (see .account-label-text/.account-label-icon overrides below). */
+.account-label-icon {
+  display: none;
+}
+
 /* ─── Mobile responsiveness ───────────────────────────────────────────────
    Components mostly use inline styles, so these overrides use !important
    to win over them at narrow widths. Applied via shared class names on the
@@ -224,31 +254,131 @@ button { cursor: pointer; }
     padding-right: 20px !important;
   }
 
-  /* Header: drop the absolute positioning so left/center/right groups wrap
-     naturally instead of overlapping on narrow screens. */
+  /* Brief generator picker steps (discipline / industry / timeline) — cards
+     go from a squeezed single flex row to a 2-per-row grid so they stay
+     readable on a phone. */
+  .picker-cards-row {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+  .picker-cards-row > * {
+    min-height: 220px !important;
+  }
+
+  /* Header: stays a single row — logo pinned top-left, brief-generator
+     icon + account grouped in the top-right corner, everything else
+     shrinks/collapses to make room instead of wrapping to a new line. */
   .app-header {
-    height: auto !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    padding: 10px 12px !important;
-    row-gap: 8px;
+    height: 52px !important;
+    flex-wrap: nowrap !important;
   }
-  .app-header-left,
-  .app-header-right {
-    position: static !important;
-    transform: none !important;
+  /* Kept at the same fixed 90px as desktop (not shrunk to content) so its
+     right border lines up with Home.jsx's left gutter border underneath —
+     otherwise the two vertical lines land at slightly different x
+     positions on mobile. */
+  .app-header-nav {
+    flex: 1 1 auto !important;
+    padding: 0 8px !important;
+    min-width: 0;
   }
-  .app-header-center {
-    position: static !important;
-    transform: none !important;
-    order: -1;
-    width: 100%;
+  .app-header-icon {
+    width: 52px !important;
+  }
+  .app-header-icon img {
+    height: 24px !important;
+  }
+  .app-header-account {
+    width: 60px !important;
+  }
+  /* Account label swaps from text to a compact person glyph so it fits
+     the shrunk corner cell. */
+  .account-label-text {
+    display: none;
+  }
+  .account-label-icon {
+    display: block !important;
+  }
+  .account-pill {
+    padding: 6px !important;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
+  /* Account project grid — max 2 per row on mobile (desktop is 3). */
   .responsive-project-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Account "on-going project" sidebar — normal in-flow panel on desktop.
+   On mobile the desktop panel is hidden and a SEPARATE copy is portaled
+   straight onto document.body (see Portfolio.jsx) as `.portfolio-sidebar-mobile`.
+   It has to be a portal, not just `position: fixed` on the original div,
+   because the page wrapper (`.page-enter`) animates with a CSS transform —
+   any transformed ancestor becomes the containing block for `fixed`
+   descendants, which silently breaks "stuck to the viewport" behavior
+   (same issue solved for the Brief.jsx action bar). Portaling to <body>
+   sidesteps that entirely so the button is always truly viewport-fixed. */
+.portfolio-sidebar-collapsed-label,
+.portfolio-sidebar-close {
+  display: none;
+}
+
+.portfolio-sidebar-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .portfolio-sidebar {
+    display: none !important;
+  }
+
+  .portfolio-sidebar-mobile {
+    display: flex;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 0;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    background: #83C7F9;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    cursor: pointer;
+    z-index: 200;
+    transition: width 0.3s cubic-bezier(0.65,0,0.35,1), height 0.3s cubic-bezier(0.65,0,0.35,1), border-radius 0.3s ease, background 0.3s ease;
+  }
+  .portfolio-sidebar-mobile.expanded {
+    width: calc(100vw - 32px);
+    height: min(72vh, 560px);
+    max-width: 420px;
+    border-radius: 20px;
+    padding: 24px;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow-y: auto;
+    background: #D4D4D4;
+    cursor: default;
+  }
+  .portfolio-sidebar-mobile .portfolio-sidebar-collapsed-label {
+    display: flex !important;
+  }
+  .portfolio-sidebar-mobile.expanded .portfolio-sidebar-collapsed-label {
+    display: none !important;
+  }
+  .portfolio-sidebar-mobile .portfolio-sidebar-content {
+    display: none;
+  }
+  .portfolio-sidebar-mobile.expanded .portfolio-sidebar-content {
+    display: block;
+    width: 100%;
+  }
+  .portfolio-sidebar-mobile.expanded .portfolio-sidebar-close {
+    display: flex !important;
   }
 }
 
@@ -268,6 +398,14 @@ button { cursor: pointer; }
     repeating-linear-gradient(0deg, rgba(241,161,178,0.4) 0px, rgba(241,161,178,0.4) 1px, transparent 1px, transparent 72px),
     repeating-linear-gradient(90deg, rgba(241,161,178,0.4) 0px, rgba(241,161,178,0.4) 1px, transparent 1px, transparent 72px),
     linear-gradient(180deg, #FFFFFF 0%, #F9F9F1 100%);
+}
+
+/* Dark variant — brief generator flow (picker steps + result page). */
+.grid-paper-dark {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(241,161,178,0.1) 0px, rgba(241,161,178,0.1) 1px, transparent 1px, transparent 72px),
+    repeating-linear-gradient(90deg, rgba(241,161,178,0.1) 0px, rgba(241,161,178,0.1) 1px, transparent 1px, transparent 72px),
+    linear-gradient(180deg, #1A1A1A 0%, #141414 100%);
 }
 
 /* Header + landing/table layouts — thin bordered cells that read like a
@@ -293,6 +431,65 @@ button { cursor: pointer; }
 }
 .card-pop {
   animation: cardPopIn 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+/* Entrance for design blocks/grid cells that don't already have a
+   stagger-pop treatment — the brief-generator picker cards, the brief
+   result page's info blocks, and the account sidebar cards. Pair with an
+   inline animation-delay per item for a staggered reveal. */
+@-webkit-keyframes slide-top {
+  0% { -webkit-transform: translateY(24px); transform: translateY(24px); opacity: 0; }
+  100% { -webkit-transform: translateY(0); transform: translateY(0); opacity: 1; }
+}
+@keyframes slide-top {
+  0% { -webkit-transform: translateY(24px); transform: translateY(24px); opacity: 0; }
+  100% { -webkit-transform: translateY(0); transform: translateY(0); opacity: 1; }
+}
+.slide-top {
+  -webkit-animation: slide-top 0.6s ease-out both;
+  animation: slide-top 0.6s ease-out both;
+}
+
+/* Step-picker selected card — floats up with a soft shadow, plus a glowing
+   light that travels continuously around the card's border path (an SVG
+   rounded-rect stroke animated via stroke-dashoffset: one blurred copy for
+   the halo, one crisp copy on top for the line itself). Used on the
+   discipline/industry/timeline brief-generator steps. */
+.picker-card-selected {
+  transform: translateY(-6px) scale(1.03) !important;
+  box-shadow: 0 18px 34px rgba(0,0,0,0.18);
+}
+.picker-card-glow-wrap {
+  position: relative;
+}
+.glow-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.glow-blur,
+.glow-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-dasharray: 18 82;
+  animation: glowRun 3s linear infinite;
+}
+.glow-blur {
+  stroke: #FFFFFF;
+  stroke-width: 5;
+  filter: blur(6px);
+  opacity: 0.9;
+}
+.glow-line {
+  stroke: #FFFFFF;
+  stroke-width: 1.5;
+  opacity: 0.95;
+}
+@keyframes glowRun {
+  to { stroke-dashoffset: -100; }
 }
 
 /* Brief loading state */

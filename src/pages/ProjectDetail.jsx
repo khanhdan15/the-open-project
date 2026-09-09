@@ -71,6 +71,13 @@ export default function ProjectDetail() {
 
   const [project, setProject] = useState(() => location.state?.project || null)
   const [isHighlight, setIsHighlight] = useState(project?.isHighlight || false)
+  // Public-profile visitors always get a view-only page — only the account
+  // holder viewing their own portfolio (Portfolio.jsx, which never sets
+  // this flag) sees the edit/pin/delete controls.
+  const readOnly = location.state?.readOnly === true
+  const profileSlug = location.state?.profileSlug
+  const backPath = readOnly && profileSlug ? `/u/${profileSlug}` : '/portfolio'
+  const backLabel = readOnly && profileSlug ? '← Back to profile' : '← Back to portfolio'
 
   const handleDelete = async () => {
     if (!project?.id) return
@@ -124,16 +131,16 @@ export default function ProjectDetail() {
       {/* Back button + delete */}
       <div className="responsive-page-padding" style={{ padding: '12px 48px 0', display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center' }}>
         <button
-          onClick={() => navigate('/portfolio')}
+          onClick={() => navigate(backPath)}
           style={{
             background: 'none', border: 'none', cursor: 'pointer',
             fontFamily: HN, fontSize: '11px', color: '#999', padding: 0,
           }}
         >
-          ← Back to portfolio
+          {backLabel}
         </button>
 
-        {project?.id && (
+        {project?.id && !readOnly && (
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <button
               onClick={() => setEditing(true)}
@@ -153,7 +160,7 @@ export default function ProjectDetail() {
                 opacity: togglingHighlight ? 0.5 : 1,
               }}
             >
-              {togglingHighlight ? 'Updating…' : isHighlight ? '★ Remove from Highlight' : 'Send to Highlight'}
+              {togglingHighlight ? 'Updating…' : isHighlight ? '★ Unpin' : 'Pin to top'}
             </button>
             <button
               onClick={handleDelete}

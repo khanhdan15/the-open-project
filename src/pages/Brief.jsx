@@ -14,9 +14,10 @@ const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helveti
 // A single white rounded-corner info block — the brief result page is a
 // grid of these ("client information", "background", "audience",
 // "goals + deliverables", "tone"), matching the mockup exactly.
-function Block({ label, children, bg = '#FFFFFF', color = '#0A0A0A', style }) {
+function Block({ label, children, bg = '#FFFFFF', color = '#0A0A0A', style, className = '' }) {
   return (
     <div
+      className={className}
       style={{
         background: bg,
         borderRadius: '16px',
@@ -214,25 +215,25 @@ export default function Brief() {
 
   return (
     <>
-    <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
+    <div className="page-enter" style={{ background: COLORS.darkBg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header dark />
 
       {loading && <LoadingScreen fixed={false} label="Generating brief" />}
 
       {!loading && error && (
-        <p style={{ textAlign: 'center', color: '#999', marginTop: '20vh', fontFamily: HN, fontSize: '13px' }}>
+        <p style={{ textAlign: 'center', color: COLORS.darkMuted, marginTop: '20vh', fontFamily: HN, fontSize: '13px' }}>
           {error}
         </p>
       )}
 
       {!loading && !error && brief && (
-        <div className="grid-paper-brief" style={{ flex: 1, padding: '28px 40px 120px' }}>
+        <div className="grid-paper-dark" style={{ flex: 1, padding: '28px 40px 120px' }}>
 
           {/* Date / brief no. / regenerate, plus title + short summary —
-              one shared translucent white veil sits behind all of it so the
+              one shared translucent dark veil sits behind all of it so the
               grid fades to half-strength and the text reads cleanly. */}
           <div style={{ position: 'relative', marginBottom: '48px' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.5)', pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', pointerEvents: 'none' }} />
             <div style={{ position: 'relative', padding: '24px 24px 32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <span style={{ fontFamily: HN, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em', color: COLORS.accentPink }}>
@@ -255,12 +256,12 @@ export default function Brief() {
               <div style={{ textAlign: 'center' }}>
                 <h1 style={{
                   fontFamily: HN, fontSize: 'clamp(32px, 6vw, 56px)', fontWeight: 400,
-                  textTransform: 'uppercase', color: '#0A0A0A', lineHeight: 1.1, margin: '0 0 14px',
+                  textTransform: 'uppercase', color: COLORS.darkText, lineHeight: 1.1, margin: '0 0 14px',
                 }}>
                   {brief.title}
                 </h1>
                 {!submitMode && brief.summary && (
-                  <p style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, color: '#0A0A0A', margin: 0 }}>
+                  <p style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, color: COLORS.darkText, margin: 0 }}>
                     {brief.summary}
                   </p>
                 )}
@@ -283,7 +284,8 @@ export default function Brief() {
                   label="client information"
                   bg={COLORS.blockDark}
                   color={COLORS.blockDarkText}
-                  style={{ gridColumn: '1', gridRow: '1', minHeight: '140px' }}
+                  className="slide-top"
+                  style={{ gridColumn: '1', gridRow: '1', minHeight: '140px', animationDelay: '0ms' }}
                 >
                   <p style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.8, color: COLORS.blockDarkText, margin: 0 }}>client: {brief.client}</p>
                   <p style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.8, color: COLORS.blockDarkText, margin: 0 }}>industry: {brief.industry}</p>
@@ -294,7 +296,8 @@ export default function Brief() {
                   label="background"
                   bg={COLORS.blockPurple}
                   color={COLORS.blockLightText}
-                  style={{ gridColumn: '2', gridRow: '1', minHeight: '260px' }}
+                  className="slide-top"
+                  style={{ gridColumn: '2', gridRow: '1', minHeight: '260px', animationDelay: '80ms' }}
                 >
                   <Bullets items={brief.details?.Background} color={COLORS.blockLightText} />
                 </Block>
@@ -303,7 +306,8 @@ export default function Brief() {
                   label="audience"
                   bg={COLORS.blockBlue}
                   color={COLORS.blockLightText}
-                  style={{ gridColumn: '3', gridRow: '1', minHeight: '260px' }}
+                  className="slide-top"
+                  style={{ gridColumn: '3', gridRow: '1', minHeight: '260px', animationDelay: '160ms' }}
                 >
                   <Bullets items={brief.details?.['Target Audience']} color={COLORS.blockLightText} />
                 </Block>
@@ -312,7 +316,8 @@ export default function Brief() {
                   label="goals + deliverables"
                   bg={COLORS.blockBlue}
                   color={COLORS.blockLightText}
-                  style={{ gridColumn: '1 / 3', gridRow: '2', minHeight: '260px' }}
+                  className="slide-top"
+                  style={{ gridColumn: '1 / 3', gridRow: '2', minHeight: '260px', animationDelay: '240ms' }}
                 >
                   <Bullets items={brief.details?.Goals} color={COLORS.blockLightText} />
                   <Bullets items={brief.details?.Deliverables} color={COLORS.blockLightText} />
@@ -323,7 +328,8 @@ export default function Brief() {
                   label="tone"
                   bg={COLORS.blockDark}
                   color={COLORS.blockDarkText}
-                  style={{ gridColumn: '3', gridRow: '2', minHeight: '140px' }}
+                  className="slide-top"
+                  style={{ gridColumn: '3', gridRow: '2', minHeight: '140px', animationDelay: '320ms' }}
                 >
                   <Bullets items={brief.details?.['Brand Tone']} color={COLORS.blockDarkText} />
                 </Block>
@@ -336,11 +342,11 @@ export default function Brief() {
                 onDrop={handleDrop}
                 onDragOver={(e) => e.preventDefault()}
                 style={{
-                  border: '1.5px dashed rgba(0,0,0,0.3)',
+                  border: `1.5px dashed ${COLORS.darkBorder}`,
                   minHeight: '200px',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                   cursor: 'pointer',
-                  background: previewUrl ? 'transparent' : 'rgba(255,255,255,0.6)',
+                  background: previewUrl ? 'transparent' : 'rgba(255,255,255,0.05)',
                   overflow: 'hidden',
                 }}
               >
@@ -348,14 +354,14 @@ export default function Brief() {
                   <img src={imagesBase64[0] || previewUrl} alt="Project preview" style={{ maxWidth: '100%', maxHeight: '360px', objectFit: 'contain', display: 'block' }} />
                 ) : (
                   <>
-                    <div style={{ fontFamily: HN, fontSize: '12px', color: '#999', marginBottom: '8px' }}>Drop your project file here or click to upload</div>
-                    <div style={{ fontFamily: HN, fontSize: '10px', color: '#bbb' }}>Accepts image files</div>
+                    <div style={{ fontFamily: HN, fontSize: '12px', color: COLORS.darkMuted, marginBottom: '8px' }}>Drop your project file here or click to upload</div>
+                    <div style={{ fontFamily: HN, fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Accepts image files</div>
                   </>
                 )}
               </div>
               {imagesBase64.length > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px' }}>
-                  <button onClick={handleSubmitProject} style={{ fontFamily: HN, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', background: '#0A0A0A', color: '#FFFFFF', border: 'none', padding: '12px 32px', borderRadius: '999px' }}>
+                  <button onClick={handleSubmitProject} style={{ fontFamily: HN, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', background: COLORS.darkText, color: '#0A0A0A', border: 'none', padding: '12px 32px', borderRadius: '999px' }}>
                     Confirm Submission →
                   </button>
                 </div>

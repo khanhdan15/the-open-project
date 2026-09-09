@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import ScrollCue from '../components/ScrollCue'
 import { supabase } from '../lib/supabase'
+import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -32,7 +34,7 @@ function rowToProject(row) {
 }
 
 function ProjectCard({ project, index, onClick }) {
-  const { brief, folderColor, coverImage, images, image, title, discipline } = project
+  const { brief, folderColor, coverImage, images, image, title, discipline, isHighlight } = project
   const folderName = discipline || brief?.folder || 'design'
   const color = folderColor || brief?.folder_color || disciplineColor(folderName)
   const thumbnail = coverImage || images?.[0] || image
@@ -50,13 +52,32 @@ function ProjectCard({ project, index, onClick }) {
       }}>
         No {index + 1} - {displayTitle}
       </div>
-      <div style={{
-        background: thumbnail ? '#EDEDED' : color,
-        aspectRatio: '3 / 4', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <div
+        className="spotlight-card"
+        onMouseMove={handleSpotlightMove}
+        style={{
+          position: 'relative',
+          background: thumbnail ? '#EDEDED' : color,
+          aspectRatio: '3 / 4', overflow: 'hidden',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
         {thumbnail && (
           <img src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        )}
+        {isHighlight && (
+          <span
+            title="Pinned"
+            style={{
+              position: 'absolute', top: '8px', left: '8px',
+              width: '22px', height: '22px', borderRadius: '50%',
+              background: '#0A0A0A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '11px', color: '#D4E84A', lineHeight: 1,
+            }}
+          >
+            ★
+          </span>
         )}
       </div>
     </div>
@@ -99,7 +120,11 @@ export default function PublicProfile() {
 
       if (!cancelled) {
         setProfile(profileRow)
-        setProjects((projectRows || []).map(rowToProject))
+        // Pinned project always leads the grid; stable sort keeps the rest
+        // in their existing submitted_at-desc order.
+        const mapped = (projectRows || []).map(rowToProject)
+        mapped.sort((a, b) => (b.isHighlight ? 1 : 0) - (a.isHighlight ? 1 : 0))
+        setProjects(mapped)
         setLoading(false)
       }
     }
@@ -230,13 +255,15 @@ export default function PublicProfile() {
                   key={i}
                   project={project}
                   index={i}
-                  onClick={() => navigate(`/project/${i}`, { state: { project } })}
+                  onClick={() => navigate(`/project/${i}`, { state: { project, readOnly: true, profileSlug: slug } })}
                 />
               ))}
             </div>
           )}
         </div>
       )}
+
+      <ScrollCue itemCount={projects.length} active={tab === 'projects'} desktopColumns={4} />
     </div>
   )
 }

@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import AddProjectModal from '../components/AddProjectModal'
+import ScrollCue from '../components/ScrollCue'
 import { useUser } from '../context/UserContext'
+import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -34,7 +37,7 @@ function PlaceholderGrid() {
 }
 
 function ProjectCard({ project, index, onClick }) {
-  const { brief, folderColor, coverImage, images, image, title, discipline } = project
+  const { brief, folderColor, coverImage, images, image, title, discipline, isHighlight } = project
   const folderName = discipline || brief?.folder || 'design'
   const color = folderColor || brief?.folder_color || disciplineColor(folderName)
   const thumbnail = coverImage || images?.[0] || image
@@ -52,57 +55,45 @@ function ProjectCard({ project, index, onClick }) {
       }}>
         No {index + 1} - {displayTitle}
       </div>
-      <div style={{
-        background: thumbnail ? '#EDEDED' : color,
-        aspectRatio: '3 / 4', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
+      <div
+        className="spotlight-card"
+        onMouseMove={handleSpotlightMove}
+        style={{
+          position: 'relative',
+          background: thumbnail ? '#EDEDED' : color,
+          aspectRatio: '3 / 4', overflow: 'hidden',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}
+      >
         {thumbnail && (
           <img src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        )}
+        {isHighlight && (
+          <span
+            title="Pinned"
+            style={{
+              position: 'absolute', top: '8px', left: '8px',
+              width: '22px', height: '22px', borderRadius: '50%',
+              background: '#0A0A0A',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '11px', color: '#D4E84A', lineHeight: 1,
+            }}
+          >
+            ★
+          </span>
         )}
       </div>
     </div>
   )
 }
 
-function OngoingCard({ savedBrief, onClick }) {
-  if (savedBrief.isChallenge === true) {
-    return (
-      <div
-        onClick={onClick}
-        style={{
-          padding: '2px',
-          borderRadius: '14px',
-          background: 'linear-gradient(135deg, #1a1a2e, #4a9aba, #b8e8f0, #ffffff, #4a9aba, #1a1a2e)',
-          backgroundSize: '300% 300%',
-          animation: 'gbMove 8s linear infinite',
-          boxShadow: '0 0 12px rgba(74,154,186,0.15)',
-          marginBottom: '8px',
-          cursor: 'pointer',
-        }}
-      >
-        <div style={{ background: '#FFFFFF', borderRadius: '12px', padding: '12px' }}>
-          <span style={{ fontFamily: HN, fontSize: '8px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4a9aba', marginBottom: '4px', display: 'block' }}>
-            Challenge
-          </span>
-          <div style={{ fontFamily: HN, fontSize: '14px', fontWeight: 600, color: '#0A0A0A', lineHeight: 1.3, marginBottom: '4px' }}>
-            Challenge 001
-          </div>
-          {savedBrief.brief?.title && (
-            <div style={{ fontFamily: HN, fontSize: '10px', color: '#666', lineHeight: 1.3 }}>
-              {savedBrief.brief.title}
-            </div>
-          )}
-        </div>
-      </div>
-    )
-  }
-
+function OngoingCard({ savedBrief, onClick, index = 0 }) {
   return (
-    <div onClick={onClick} style={{
+    <div onClick={onClick} className="slide-top" style={{
       background: savedBrief.categoryColor || '#60DDE6',
       borderRadius: '12px', padding: '12px', marginBottom: '8px',
       width: '100%', cursor: 'pointer', boxSizing: 'border-box',
+      animationDelay: `${80 + index * 70}ms`,
     }}>
       <div style={{ fontFamily: HN, fontSize: '16px', fontWeight: 400, color: '#0A0A0A', lineHeight: 1.3 }}>
         {savedBrief.title || 'Untitled Brief'}
@@ -113,7 +104,7 @@ function OngoingCard({ savedBrief, onClick }) {
 
 export default function Portfolio() {
   const navigate = useNavigate()
-  const { user, submittedProjects, savedBriefs, loading, updateAvatar } = useUser()
+  const { user, submittedProjects, savedBriefs, loading, updateAvatar, updateCV, removeSavedBrief } = useUser()
   const profile = user?.user_metadata || {}
   const displayName = profile.name || profile.username || ''
   const [toast, setToast] = useState(false)
@@ -121,7 +112,10 @@ export default function Portfolio() {
   const [addedToast, setAddedToast] = useState(false)
   const [tab, setTab] = useState('projects')
   const [avatarUploading, setAvatarUploading] = useState(false)
+  const [cvUploading, setCvUploading] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const avatarInputRef = useRef(null)
+  const cvInputRef = useRef(null)
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0]
@@ -137,6 +131,20 @@ export default function Portfolio() {
     e.target.value = ''
   }
 
+  const handleCVChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (evt) => resolve(evt.target.result)
+      reader.readAsDataURL(file)
+    })
+    setCvUploading(true)
+    await updateCV(base64)
+    setCvUploading(false)
+    e.target.value = ''
+  }
+
   const handleProjectAdded = () => {
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2000)
@@ -145,6 +153,14 @@ export default function Portfolio() {
   useEffect(() => {
     if (!loading && !user) navigate('/signup', { replace: true })
   }, [user, loading, navigate])
+
+  // One-time cleanup — the weekly challenge feature has been retired, but
+  // people who joined a past challenge still have that saved brief lingering
+  // in their sidebar. Purge it outright instead of just hiding it.
+  useEffect(() => {
+    savedBriefs.filter((b) => b.isChallenge).forEach((b) => removeSavedBrief(b.id))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedBriefs])
 
   const handleShare = () => {
     if (!profile.slug) {
@@ -157,8 +173,87 @@ export default function Portfolio() {
     setTimeout(() => setToast(false), 2000)
   }
 
-  const ongoing = savedBriefs.filter((b) => b.status === 'ongoing' || !b.status)
+  const ongoing = savedBriefs.filter((b) => (b.status === 'ongoing' || !b.status) && !b.isChallenge)
   const [onGoing, ...restSaved] = ongoing
+
+  // Pinned project always leads the grid; stable sort keeps the rest in
+  // their existing submitted_at-desc order.
+  const sortedProjects = [...submittedProjects].sort(
+    (a, b) => (b.isHighlight ? 1 : 0) - (a.isHighlight ? 1 : 0)
+  )
+
+  // Shared between the desktop in-flow sidebar and the mobile portaled
+  // floating panel — same data, same markup, just rendered in two places.
+  const sidebarInner = (
+    <>
+      {/* On-going project */}
+      <div style={{
+        fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
+        textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '16px', lineHeight: 1.3,
+      }}>
+        On-going project
+      </div>
+      {onGoing ? (
+        <div
+          onClick={() => navigate('/brief', { state: { folderName: onGoing.discipline, categoryColor: onGoing.categoryColor, savedBrief: onGoing } })}
+          className="slide-top"
+          style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px', cursor: 'pointer', display: 'flex', alignItems: 'flex-end' }}
+        >
+          <span style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A' }}>{onGoing.title || 'Untitled Brief'}</span>
+        </div>
+      ) : (
+        <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px' }}>
+          <span style={{ fontFamily: HN, fontSize: '12px', color: 'rgba(0,0,0,0.35)' }}>project title</span>
+        </div>
+      )}
+
+      {/* Saved projects */}
+      <div style={{
+        fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
+        textTransform: 'uppercase', letterSpacing: '0.02em', margin: '32px 0 16px', lineHeight: 1.3,
+      }}>
+        Saved projects
+      </div>
+      {restSaved.length === 0 ? (
+        <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px' }}>
+          <span style={{ fontFamily: HN, fontSize: '11px', color: 'rgba(0,0,0,0.35)' }}>nothing saved yet</span>
+        </div>
+      ) : (
+        restSaved.map((brief, i) => (
+          <OngoingCard
+            key={i}
+            savedBrief={brief}
+            index={i}
+            onClick={() => navigate('/brief', { state: { folderName: brief.discipline, categoryColor: brief.categoryColor, savedBrief: brief } })}
+          />
+        ))
+      )}
+
+      {/* Add project manually */}
+      {addedToast && (
+        <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', opacity: 0.6, margin: '16px 0 4px', textAlign: 'center' }}>
+          Project added to portfolio
+        </div>
+      )}
+      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <button
+          onClick={(e) => { e.stopPropagation(); setModalOpen(true) }}
+          style={{
+            width: '48px', height: '48px', borderRadius: '50%',
+            border: '1.5px solid rgba(0,0,0,0.3)',
+            background: 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', padding: 0,
+          }}
+        >
+          <span style={{ fontFamily: HN, fontSize: '20px', fontWeight: 200, color: 'rgba(0,0,0,0.5)', lineHeight: 1 }}>+</span>
+        </button>
+        <div style={{ fontFamily: HN, fontSize: '10px', color: '#0A0A0A', textAlign: 'center', marginTop: '6px' }}>
+          add project manually
+        </div>
+      </div>
+    </>
+  )
 
   const tabStyle = (active) => ({
     background: 'none', border: 'none', cursor: 'pointer', padding: 0,
@@ -280,8 +375,8 @@ export default function Portfolio() {
               </div>
             </div>
           )}
-          <div style={{ marginTop: '32px' }}>
-            {profile.cvUrl ? (
+          <div style={{ marginTop: '32px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            {profile.cvUrl && (
               <a
                 href={profile.cvUrl}
                 target="_blank"
@@ -296,11 +391,32 @@ export default function Portfolio() {
               >
                 Download CV
               </a>
-            ) : (
-              <div style={{ fontFamily: HN, fontSize: '11px', color: '#999' }}>
-                Add a CV link in Settings to let people download it.
-              </div>
             )}
+            <button
+              onClick={() => cvInputRef.current?.click()}
+              disabled={cvUploading}
+              style={{
+                fontFamily: HN, fontSize: '11px', color: '#0A0A0A',
+                background: profile.cvUrl ? 'none' : 'transparent',
+                border: profile.cvUrl ? 'none' : '1px dashed rgba(0,0,0,0.4)',
+                padding: profile.cvUrl ? 0 : '10px 24px',
+                borderRadius: profile.cvUrl ? 0 : '999px',
+                cursor: cvUploading ? 'default' : 'pointer',
+                textDecoration: profile.cvUrl ? 'underline' : 'none',
+                textTransform: profile.cvUrl ? 'none' : 'uppercase',
+                letterSpacing: profile.cvUrl ? 'normal' : '0.04em',
+                opacity: cvUploading ? 0.6 : 1,
+              }}
+            >
+              {cvUploading ? 'Uploading…' : profile.cvUrl ? 'Replace CV' : 'Upload CV'}
+            </button>
+            <input
+              ref={cvInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              style={{ display: 'none' }}
+              onChange={handleCVChange}
+            />
           </div>
 
           <button
@@ -319,11 +435,11 @@ export default function Portfolio() {
 
           {/* LEFT: project grid */}
           <div style={{ flex: 1, minWidth: 0, padding: '32px 40px 40px' }}>
-            {submittedProjects.length === 0 ? (
+            {sortedProjects.length === 0 ? (
               <PlaceholderGrid />
             ) : (
               <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px 16px' }}>
-                {submittedProjects.map((project, i) => (
+                {sortedProjects.map((project, i) => (
                   <ProjectCard
                     key={i}
                     project={project}
@@ -335,82 +451,61 @@ export default function Portfolio() {
             )}
           </div>
 
-          {/* RIGHT: gray sidebar panel, flush to the page edge */}
-          <div style={{ width: '340px', flexShrink: 0, background: '#D4D4D4', padding: '32px', boxSizing: 'border-box' }}>
+          {/* RIGHT: gray sidebar panel, flush to the page edge on desktop.
+              On mobile this in-flow copy is hidden entirely and a second
+              copy is portaled onto document.body instead (see render below)
+              so it can be a true fixed round button bottom-right of the
+              viewport, unaffected by the page's transform-animated wrapper. */}
+          <div
+            className="portfolio-sidebar"
+            style={{ width: '340px', flexShrink: 0, background: '#D4D4D4', padding: '32px', boxSizing: 'border-box' }}
+          >
+            <div className="portfolio-sidebar-content">{sidebarInner}</div>
+          </div>
 
-            {/* On-going project */}
-            <div style={{
-              fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
-              textTransform: 'uppercase', letterSpacing: '0.02em', marginBottom: '16px', lineHeight: 1.3,
-            }}>
-              On-going project
-            </div>
-            {onGoing ? (
-              <div
-                onClick={() => onGoing.isChallenge
-                  ? navigate('/weekly-challenge', { state: { savedChallenge: onGoing } })
-                  : navigate('/brief', { state: { folderName: onGoing.discipline, categoryColor: onGoing.categoryColor, savedBrief: onGoing } })
-                }
-                style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px', cursor: 'pointer', display: 'flex', alignItems: 'flex-end' }}
-              >
-                <span style={{ fontFamily: HN, fontSize: '13px', color: '#0A0A0A' }}>{onGoing.title || 'Untitled Brief'}</span>
-              </div>
-            ) : (
-              <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px', minHeight: '130px' }}>
-                <span style={{ fontFamily: HN, fontSize: '12px', color: 'rgba(0,0,0,0.35)' }}>project title</span>
-              </div>
-            )}
+          {/* Mobile-only floating trigger — portaled to document.body so
+              `position: fixed` is relative to the real viewport, not to any
+              ancestor with a CSS transform (the .page-enter page-load
+              animation is exactly such an ancestor). Hidden on desktop via
+              CSS; see .portfolio-sidebar-mobile in index.css. */}
+          {typeof document !== 'undefined' && createPortal(
+            <div
+              className={`portfolio-sidebar-mobile${sidebarOpen ? ' expanded' : ''}`}
+              onClick={() => { if (!sidebarOpen) setSidebarOpen(true) }}
+            >
+              {/* Collapsed mobile state — just a compact icon, tap to expand */}
+              <span className="portfolio-sidebar-collapsed-label" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <rect x="3" y="3" width="8" height="8" rx="2" stroke="#0A0A0A" strokeWidth="1.6" />
+                  <rect x="13" y="3" width="8" height="8" rx="2" stroke="#0A0A0A" strokeWidth="1.6" />
+                  <rect x="3" y="13" width="8" height="8" rx="2" stroke="#0A0A0A" strokeWidth="1.6" />
+                  <rect x="13" y="13" width="8" height="8" rx="2" stroke="#0A0A0A" strokeWidth="1.6" />
+                </svg>
+              </span>
 
-            {/* Saved projects */}
-            <div style={{
-              fontFamily: HN, fontSize: '15px', fontWeight: 400, color: '#0A0A0A',
-              textTransform: 'uppercase', letterSpacing: '0.02em', margin: '32px 0 16px', lineHeight: 1.3,
-            }}>
-              Saved projects
-            </div>
-            {restSaved.length === 0 ? (
-              <div style={{ background: '#FFEFEF', borderRadius: '16px', padding: '16px' }}>
-                <span style={{ fontFamily: HN, fontSize: '11px', color: 'rgba(0,0,0,0.35)' }}>nothing saved yet</span>
-              </div>
-            ) : (
-              restSaved.map((brief, i) => (
-                <OngoingCard
-                  key={i}
-                  savedBrief={brief}
-                  onClick={() => brief.isChallenge
-                    ? navigate('/weekly-challenge', { state: { savedChallenge: brief } })
-                    : navigate('/brief', { state: { folderName: brief.discipline, categoryColor: brief.categoryColor, savedBrief: brief } })
-                  }
-                />
-              ))
-            )}
-
-            {/* Add project manually */}
-            {addedToast && (
-              <div style={{ fontFamily: HN, fontSize: '11px', color: '#0A0A0A', opacity: 0.6, margin: '16px 0 4px', textAlign: 'center' }}>
-                Project added to portfolio
-              </div>
-            )}
-            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* Close button — mobile expanded state only */}
               <button
-                onClick={() => setModalOpen(true)}
+                className="portfolio-sidebar-close"
+                onClick={(e) => { e.stopPropagation(); setSidebarOpen(false) }}
                 style={{
-                  width: '48px', height: '48px', borderRadius: '50%',
-                  border: '1.5px solid rgba(0,0,0,0.3)',
-                  background: 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', padding: 0,
+                  position: 'absolute', top: '12px', right: '12px',
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  border: 'none', background: 'rgba(0,0,0,0.08)',
+                  alignItems: 'center', justifyContent: 'center',
+                  fontSize: '16px', color: '#0A0A0A', cursor: 'pointer', padding: 0,
                 }}
               >
-                <span style={{ fontFamily: HN, fontSize: '20px', fontWeight: 200, color: 'rgba(0,0,0,0.5)', lineHeight: 1 }}>+</span>
+                ×
               </button>
-              <div style={{ fontFamily: HN, fontSize: '10px', color: '#0A0A0A', textAlign: 'center', marginTop: '6px' }}>
-                add project manually
-              </div>
-            </div>
-          </div>
+
+              <div className="portfolio-sidebar-content">{sidebarInner}</div>
+            </div>,
+            document.body
+          )}
         </div>
       )}
+
+      <ScrollCue itemCount={sortedProjects.length} active={tab === 'projects'} />
 
       {modalOpen && (
         <AddProjectModal

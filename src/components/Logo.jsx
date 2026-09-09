@@ -5,12 +5,15 @@ import logo from '../assets/logo-horizontal.png'
 // width follows to keep it undistorted.
 const RATIO = 788 / 387
 
-export default function Logo({ size = 34 }) {
+export default function Logo({ size = 37, invert = false }) {
   return (
     <img
       src={logo}
       alt="Open Ruler"
-      style={{ height: size, width: size * RATIO, display: 'block', objectFit: 'contain' }}
+      style={{
+        height: size, width: size * RATIO, display: 'block', objectFit: 'contain',
+        filter: invert ? 'invert(1)' : 'none',
+      }}
     />
   )
 }

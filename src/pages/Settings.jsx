@@ -154,9 +154,9 @@ export default function Settings() {
           <Field label="Behance">
             <input style={inputStyle} placeholder="https://behance.net/..." value={form.behance} onChange={set('behance')} />
           </Field>
-          <Field label="CV Link">
-            <input style={inputStyle} placeholder="Link to your CV (Drive, PDF, etc.)" value={form.cvUrl} onChange={set('cvUrl')} />
-          </Field>
+        </div>
+        <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', marginTop: '4px' }}>
+          Upload your CV file from the About tab on your portfolio.
         </div>
 
         {error && (

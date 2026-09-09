@@ -103,8 +103,8 @@ function pickIndustries(n = 4, category = null) {
 
 // ─── Quick Brief ─────────────────────────────────────────────────────────────
 const TIMELINE_GUIDANCE = {
-  sprint: 'This is a SPRINT (1 week). Scope the deliverables down to what a single designer could realistically ship in a week — a focused, high-impact core (e.g. one key deliverable plus 1-2 supporting pieces), not a full multi-channel rollout. Constraints should mention the tight turnaround explicitly.',
-  marathon: 'This is a MARATHON (3 weeks). Scope the deliverables up to a fuller system — enough surface area for real exploration and iteration (e.g. a small deliverable set spanning multiple touchpoints). Constraints should reflect the longer runway (more stakeholder rounds, more refinement expected).',
+  sprint: 'This is a SPRINT (less than a week). Scope the deliverables down to what a single designer could realistically ship in a few days — a focused, high-impact core (e.g. one key deliverable plus 1-2 supporting pieces), not a full multi-channel rollout. Constraints should mention the tight turnaround explicitly.',
+  marathon: 'This is a MARATHON (more than a week). Scope the deliverables up to a fuller system — enough surface area for real exploration and iteration (e.g. a small deliverable set spanning multiple touchpoints). Constraints should reflect the longer runway (more stakeholder rounds, more refinement expected).',
 }
 
 function buildPrompt(discipline, { industry, timeline } = {}) {

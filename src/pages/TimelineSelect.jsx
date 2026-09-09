@@ -1,37 +1,47 @@
 import { useState, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
-import { TIMELINES } from '../lib/theme'
+import GlowBorder from '../components/GlowBorder'
+import { handleSpotlightMove } from '../lib/spotlight'
+import { TIMELINES, COLORS } from '../lib/theme'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-function TimelineCard({ timeline, isSelected, onSelect }) {
+function TimelineCard({ timeline, isSelected, onSelect, index = 0 }) {
   const [hovered, setHovered] = useState(false)
+  // See DisciplineCard for why this is state instead of a direct DOM
+  // classList mutation — needs to survive a re-render (e.g. selecting).
+  const [entering, setEntering] = useState(true)
   return (
     <div
       onClick={() => onSelect(timeline.id)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onMouseMove={handleSpotlightMove}
+      onAnimationEnd={() => setEntering(false)}
+      className={`spotlight-card${entering ? ' slide-top' : ''}${isSelected ? ' picker-card-glow-wrap picker-card-selected' : ''}`}
       style={{
         flex: 1,
         minHeight: '340px',
         background: timeline.color,
-        border: isSelected ? '2px solid #0A0A0A' : 'none',
+        border: 'none',
         boxSizing: 'border-box',
         borderRadius: '20px',
         cursor: 'pointer',
-        transform: isSelected ? 'scale(1.02)' : hovered ? 'scale(1.01)' : 'none',
-        transition: 'transform 0.15s ease',
+        transform: isSelected ? undefined : hovered ? 'scale(1.01)' : 'none',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         gap: '6px',
+        animationDelay: `${index * 100}ms`,
       }}
     >
-      <div style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', color: '#0A0A0A' }}>
+      <div style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, textTransform: 'uppercase', color: timeline.accentColor || timeline.textColor }}>
         {timeline.name}
       </div>
-      <div style={{ fontFamily: HN, fontSize: '9px', letterSpacing: '0.06em', color: 'rgba(0,0,0,0.6)' }}>
-        ({timeline.duration})
+      <div style={{ fontFamily: HN, fontSize: '11px', lineHeight: 1.5, textAlign: 'center', maxWidth: '220px', color: timeline.textColor }}>
+        {timeline.description}
       </div>
+      {isSelected && <GlowBorder radius={20} />}
     </div>
   )
 }
@@ -39,11 +49,12 @@ function TimelineCard({ timeline, isSelected, onSelect }) {
 export default function TimelineSelect() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [selected, setSelected] = useState(null)
+  const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry } = location.state || {}
+  const [selected, setSelected] = useState(location.state?.timeline || null)
   const [shaking, setShaking] = useState(false)
   const btnRef = useRef(null)
 
-  const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry } = location.state || {}
+  const handleBack = () => navigate('/new/industry', { state: { folderName, folderColor, industry, timeline: selected } })
 
   const handleGo = () => {
     if (!selected) {
@@ -55,13 +66,13 @@ export default function TimelineSelect() {
   }
 
   return (
-    <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Header />
+    <div className="page-enter grid-paper-dark" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header dark />
 
       <div style={{ width: '100%', maxWidth: '1160px', margin: '0 auto', padding: '48px 40px 40px', flex: 1, boxSizing: 'border-box' }}>
         <div style={{
           fontFamily: HN, fontSize: '32px', fontWeight: 400,
-          textTransform: 'uppercase', color: '#0A0A0A', textAlign: 'center',
+          textTransform: 'uppercase', color: COLORS.darkText, textAlign: 'center',
           marginBottom: '56px',
         }}>
           Your Next Design Brief
@@ -69,7 +80,7 @@ export default function TimelineSelect() {
 
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          fontFamily: HN, fontSize: '10px', letterSpacing: '0.08em', color: '#0A0A0A',
+          fontFamily: HN, fontSize: '10px', letterSpacing: '0.08em', color: COLORS.accentPink,
           marginBottom: '20px', textTransform: 'uppercase',
         }}>
           <span>03 -</span>
@@ -77,27 +88,39 @@ export default function TimelineSelect() {
           <span>/3</span>
         </div>
 
-        <div style={{ display: 'flex', gap: '24px' }}>
-          {TIMELINES.map((t) => (
+        <div className="picker-cards-row" style={{ display: 'flex', gap: '24px' }}>
+          {TIMELINES.map((t, i) => (
             <TimelineCard
               key={t.id}
               timeline={t}
+              index={i}
               isSelected={selected === t.id}
               onSelect={setSelected}
             />
           ))}
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '48px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '48px' }}>
+          <button
+            onClick={handleBack}
+            style={{
+              width: '64px', height: '30px', borderRadius: '999px',
+              border: `1.5px solid ${COLORS.darkText}`, background: 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '15px', color: COLORS.darkText, cursor: 'pointer',
+            }}
+          >
+            ←
+          </button>
           <button
             ref={btnRef}
             onClick={handleGo}
             className={shaking ? 'shake' : ''}
             style={{
               width: '64px', height: '30px', borderRadius: '999px',
-              border: '1.5px solid #0A0A0A', background: 'transparent',
+              border: `1.5px solid ${COLORS.darkText}`, background: 'transparent',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '15px', color: '#0A0A0A', cursor: 'pointer',
+              fontSize: '15px', color: COLORS.darkText, cursor: 'pointer',
             }}
           >
             →
@@ -105,7 +128,7 @@ export default function TimelineSelect() {
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid rgba(0,0,0,0.15)' }} />
+      <div style={{ borderTop: `1px solid ${COLORS.darkBorder}` }} />
     </div>
   )
 }

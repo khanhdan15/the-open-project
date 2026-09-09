@@ -12,46 +12,6 @@ const WEEKLY_DISCIPLINE = 'Brand & Identity'
 
 const CHALLENGE_COLOR = '#4a9aba'
 
-const ISSUED = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-
-function ChallengeTab({ onClose }) {
-  const W = 264
-  const H = 54
-  const sw = 1.5
-  const o = sw / 2
-  const d = [
-    `M ${o},${H}`,
-    `L ${o},${o}`,
-    `L 194,${o}`,
-    `C 236,${o} ${W - o},17 ${W - o},${H}`,
-    `Z`,
-  ].join(' ')
-
-  return (
-    <div style={{ position: 'relative', width: `${W}px`, height: `${H}px`, flexShrink: 0, zIndex: 1, marginBottom: '-1.5px' }}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} fill="none" style={{ position: 'absolute', top: 0, left: 0, display: 'block' }}>
-        <path d={d} fill="#FFFFFF" stroke={CHALLENGE_COLOR} strokeWidth={sw} strokeLinecap="square" strokeLinejoin="miter" />
-      </svg>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', padding: '0 46px 0 10px' }}>
-        <div>
-          <div style={{ fontFamily: HN, fontSize: '14px', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#0A0A0A', lineHeight: 1.0 }}>
-            Challenge 001
-          </div>
-          <div style={{ fontFamily: HN, fontSize: '10px', fontWeight: 400, textTransform: 'uppercase', color: '#0A0A0A', lineHeight: 1.0, marginTop: '3px' }}>
-            {ISSUED}
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          style={{ position: 'absolute', right: '40px', top: '50%', transform: 'translateY(-50%)', width: '22px', height: '22px', borderRadius: '50%', background: 'rgba(0,0,0,0.07)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1, color: '#0A0A0A' }}
-        >
-          ×
-        </button>
-      </div>
-    </div>
-  )
-}
-
 function MetaCol({ label, value }) {
   return (
     <div style={{ textAlign: 'center' }}>
@@ -121,6 +81,16 @@ export default function WeeklyChallenge() {
 
       <div style={{ width: '80vw', margin: '20px auto 40px' }}>
 
+        <button
+          onClick={() => navigate('/community')}
+          style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontFamily: HN, fontSize: '11px', color: '#999', padding: 0, marginBottom: '16px',
+          }}
+        >
+          ← Back to community
+        </button>
+
         {/* Loading state */}
         {loading && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', gap: '16px' }}>
@@ -143,12 +113,9 @@ export default function WeeklyChallenge() {
         {/* Challenge content */}
         {!loading && !error && challenge && (
           <>
-            {/* CHALLENGE 001 tab */}
-            <ChallengeTab onClose={() => navigate('/community')} />
-
             {/* Card with animated gradient border */}
-            <div className="gradient-border-wrap" style={{ borderRadius: '0 8px 8px 8px', marginTop: 0, paddingTop: '2px' }}>
-              <div className="gradient-border-inner" style={{ borderRadius: '0 7px 7px 7px', position: 'relative' }}>
+            <div className="gradient-border-wrap" style={{ borderRadius: '8px', marginTop: 0 }}>
+              <div className="gradient-border-inner" style={{ borderRadius: '7px', position: 'relative' }}>
 
                 {/* Colored rule */}
                 <div style={{ borderTop: `1px solid ${categoryColor}`, width: '80%', margin: '20px auto 0', padding: 0 }} />
