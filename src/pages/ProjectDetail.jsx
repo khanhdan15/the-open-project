@@ -79,6 +79,15 @@ export default function ProjectDetail() {
   const backPath = readOnly && profileSlug ? `/u/${profileSlug}` : '/portfolio'
   const backLabel = readOnly && profileSlug ? '← Back to profile' : '← Back to portfolio'
 
+  // The creator byline — Home.jsx's search/browse results attach a full
+  // `owner` object (name + slug) to each project; PublicProfile.jsx already
+  // knows the slug from the URL and passes the display name separately via
+  // location.state.ownerName. Either source is enough to link back to that
+  // person's profile; Portfolio.jsx (viewing your own work) has neither, so
+  // no byline shows there.
+  const creatorSlug = project?.owner?.slug || profileSlug
+  const creatorName = project?.owner?.name || location.state?.ownerName
+
   const handleDelete = async () => {
     if (!project?.id) return
     const confirmed = window.confirm('Delete this project from your portfolio? This can\'t be undone.')
@@ -193,6 +202,18 @@ export default function ProjectDetail() {
           <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', marginTop: '3px' }}>
             {brief?.folder || '—'}
           </div>
+          {creatorSlug && (
+            <button
+              onClick={() => navigate(`/u/${creatorSlug}`)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+                fontFamily: HN, fontSize: '11px', color: '#0A0A0A',
+                marginTop: '6px', textDecoration: 'underline',
+              }}
+            >
+              by {creatorName || creatorSlug}
+            </button>
+          )}
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: HN, fontSize: '10px', color: '#999', marginBottom: '2px' }}>test no.</div>

@@ -121,6 +121,21 @@ button { cursor: pointer; }
   background: #5095E8;
   color: #FAFAFA;
 }
+/* Icon-only variant — the regenerate button, first in line before Export. */
+.brief-action-btn-icon {
+  padding: 14px;
+}
+.brief-action-btn-icon svg {
+  width: 13.86px;
+  height: 13.86px;
+  display: block;
+}
+.brief-action-btn-icon.spinning svg {
+  animation: regenerateSpin 600ms ease;
+}
+@keyframes regenerateSpin {
+  to { transform: rotate(180deg); }
+}
 
 /* Highlight work — a bottom-aligned row of small thumbnails that fill the
    row width (like a filmstrip). Hovering one pops it up much larger, on top
@@ -408,6 +423,279 @@ button { cursor: pointer; }
     linear-gradient(180deg, #1A1A1A 0%, #141414 100%);
 }
 
+/* Single-page "Create your next brief" screen — plain black base with a
+   soft pink glow pooled at the very bottom (no hairline grid). The glow's
+   position drifts side to side very slowly so it reads as alive without
+   being distracting. */
+.brief-gradient-bg {
+  background-color: #050505;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% 100%, #FFB2B2 0%, rgba(255,178,178,0.32) 30%, rgba(255,178,178,0) 62%),
+    linear-gradient(180deg, #000000 0%, #050505 65%, #0A0605 100%);
+  background-repeat: no-repeat;
+  background-size: 220% 220%, 100% 100%;
+  animation: pinkGlowDrift 16s ease-in-out infinite;
+}
+@keyframes pinkGlowDrift {
+  0%   { background-position: 30% 100%, 0 0; }
+  50%  { background-position: 70% 100%, 0 0; }
+  100% { background-position: 30% 100%, 0 0; }
+}
+
+/* Ruler-tick edges — thin measurement marks along the left/right edges of
+   the viewport, a nod to the "Open Ruler" mark. Decorative, non-interactive.
+   A real ruler alternates 4 short ticks then 1 long tick, repeating — a
+   plain repeating-linear-gradient can only vary spacing, not per-tick
+   length, so the pattern is drawn once as a small SVG tile (4 short ticks
+   from the outer edge + 1 longer one) and repeated vertically as a
+   background image instead. Starts below the header (56px desktop / 52px
+   mobile, matching .app-header's own height) so it never runs behind it. */
+.ruler-edge {
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  width: 44px;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='70' viewBox='0 0 44 70'%3E%3Cg stroke='rgba(255,255,255,0.22)' stroke-width='1'%3E%3Cline x1='0' y1='7' x2='26' y2='7'/%3E%3Cline x1='0' y1='21' x2='26' y2='21'/%3E%3Cline x1='0' y1='35' x2='26' y2='35'/%3E%3Cline x1='0' y1='49' x2='26' y2='49'/%3E%3Cline x1='0' y1='63' x2='44' y2='63'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-size: 44px 70px;
+  z-index: 1;
+}
+.ruler-edge-left {
+  left: 0;
+}
+.ruler-edge-right {
+  right: 0;
+  transform: scaleX(-1);
+}
+
+/* ─── Brief result page (block layout) ──────────────────────────────────
+   Same drifting-glow backdrop as .brief-gradient-bg, but the glow itself
+   cross-fades from pink to baby blue and back (two stacked pseudo-elements,
+   each fading in as the other fades out) instead of staying a fixed color.
+   Kept separate from .brief-gradient-bg so the picker steps are untouched. */
+.brief-result-bg {
+  position: relative;
+  background-color: #050505;
+  background-image: linear-gradient(180deg, #000000 0%, #050505 65%, #0A0605 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+.brief-result-bg::before,
+.brief-result-bg::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 220% 220%;
+}
+.brief-result-bg::before {
+  background-image: radial-gradient(ellipse 90% 60% at 50% 100%, #FFB2B2 0%, rgba(255,178,178,0.32) 30%, rgba(255,178,178,0) 62%);
+  animation: pinkGlowDrift2 16s ease-in-out infinite;
+}
+.brief-result-bg::after {
+  background-image: radial-gradient(ellipse 90% 60% at 50% 100%, #B7DDFF 0%, rgba(183,221,255,0.32) 30%, rgba(183,221,255,0) 62%);
+  animation: blueGlowDrift 16s ease-in-out infinite;
+}
+@keyframes pinkGlowDrift2 {
+  0%   { background-position: 30% 100%; opacity: 1; }
+  50%  { background-position: 70% 100%; opacity: 0; }
+  100% { background-position: 30% 100%; opacity: 1; }
+}
+@keyframes blueGlowDrift {
+  0%   { background-position: 30% 100%; opacity: 0; }
+  50%  { background-position: 70% 100%; opacity: 1; }
+  100% { background-position: 30% 100%; opacity: 0; }
+}
+
+.brief-result-title {
+  font-family: "Instrument Sans", "Hiragino Kaku Gothic Pro", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 200;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+/* Blocks — pale-yellow Overview column plus plain white blocks, in a flex
+   layout (not a grid) so adding/removing a category doesn't mean
+   recalculating grid coordinates. */
+.brief-block {
+  position: relative;
+  border-radius: 8px;
+  padding: 22px 24px;
+  background: #FFFFFF;
+  color: #0A0A0A;
+}
+.brief-block-overview {
+  background: #FBF3B9;
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.brief-layout {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.brief-col-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.brief-row {
+  display: flex;
+  gap: 8px;
+}
+.brief-row > .brief-block {
+  flex: 1;
+}
+@media (max-width: 768px) {
+  .brief-layout { flex-direction: column; }
+  .brief-row { flex-direction: column; }
+  .brief-block-overview { width: 100%; }
+}
+.brief-block-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0A0A0A;
+}
+.brief-block-label {
+  font-family: "Instrument Sans", "Hiragino Kaku Gothic Pro", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.brief-block-line {
+  font-family: "Instrument Sans", "Hiragino Kaku Gothic Pro", -apple-system, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.7;
+  margin: 0 0 6px;
+  color: rgba(10,10,10,0.62);
+}
+.brief-pill-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.brief-pill {
+  display: inline-block;
+  align-self: flex-start;
+  border: 1px solid #0A0A0A;
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-family: "Instrument Sans", "Hiragino Kaku Gothic Pro", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  color: #0A0A0A;
+}
+
+/* Text-only entrance once a brief is generated: block shapes appear
+   instantly, only the words focus into view. */
+@keyframes focus-in-expand {
+  0%   { filter: blur(12px); opacity: 0; }
+  100% { filter: blur(0px); opacity: 1; }
+}
+.brief-focus-in {
+  -webkit-animation: focus-in-expand 0.8s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+          animation: focus-in-expand 0.8s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+
+@media (max-width: 768px) {
+  .ruler-edge {
+    top: 52px;
+    width: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='56' viewBox='0 0 20 56'%3E%3Cg stroke='rgba(255,255,255,0.22)' stroke-width='1'%3E%3Cline x1='0' y1='5' x2='10' y2='5'/%3E%3Cline x1='0' y1='16' x2='10' y2='16'/%3E%3Cline x1='0' y1='27' x2='10' y2='27'/%3E%3Cline x1='0' y1='38' x2='10' y2='38'/%3E%3Cline x1='0' y1='49' x2='20' y2='49'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 20px 56px;
+  }
+}
+
+/* Mobile "one category at a time" for the combined brief page — each of the
+   3 steps takes up basically its own screen (min-height below leaves a
+   ~90px "peek" of the next step showing at the bottom of the viewport,
+   since normal document flow means a section shorter than the viewport
+   naturally reveals the start of the next one underneath it), and only the
+   step currently in view reads at full opacity — the rest dim to 50% until
+   scrolled into focus, in either direction (see the IntersectionObserver in
+   NewBrief.jsx). Desktop is untouched: no height constraint, no dimming,
+   everything shown at once same as before.
+   Step 0 (discipline) sits right after the header + page title, so its
+   height is shorter than the other two by that title block's height —
+   keeps every step's *bottom edge* landing one viewport-height apart, so
+   the peek stays consistent all the way down. */
+@media (max-width: 768px) {
+  .brief-page-content {
+    padding: 15px 20px 40px !important;
+  }
+  .brief-title {
+    margin-top: 12px !important;
+    margin-bottom: 170px !important;
+  }
+  .brief-step-label {
+    text-align: center;
+    opacity: 1;
+  }
+  /* Each category sits compact and top-aligned (not centered in a huge
+     full-screen box) — the only "space between categories" is this
+     margin-bottom, kept separate from the label→pills gap inside a section
+     (that one's controlled by labelStyle's own marginBottom, untouched). */
+  .brief-step {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-sizing: border-box;
+    margin-bottom: 150px !important;
+  }
+  .brief-step[data-step='2'] {
+    margin-bottom: 180px !important;
+  }
+  /* Only the pills dim/brighten with the active step — the category title
+     itself always stays at full opacity (see .brief-step-label above). */
+  .brief-step > div:not(.brief-step-label) {
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+  .brief-step.brief-step-active > div:not(.brief-step-label) {
+    opacity: 1;
+  }
+
+  /* Discipline (4 options) lays out as a clean 2-column grid on mobile —
+     equal-width pills, centered labels. */
+  .brief-discipline-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  /* Industry (8 options) stays a natural flex-wrap instead of a grid — each
+     pill keeps its own content width and every wrapped row centers itself
+     (flex-wrap containers apply justify-content per line), giving a
+     staggered tag-cloud look rather than uniform grid columns, grouped
+     compactly rather than stretched to fill the whole screen. */
+  .brief-step-options {
+    justify-content: center;
+  }
+
+  /* The submit arrow stays hidden on mobile until all three picks are
+     made, then appears — desktop always shows it, right-aligned; mobile
+     centers it instead. */
+  .brief-submit-row {
+    display: none;
+    justify-content: center !important;
+  }
+  .brief-submit-row.brief-submit-ready {
+    display: flex;
+  }
+}
+
 /* Header + landing/table layouts — thin bordered cells that read like a
    ruled table, per the visual identity mockups. */
 .table-row {
@@ -490,6 +778,98 @@ button { cursor: pointer; }
 }
 @keyframes glowRun {
   to { stroke-dashoffset: -100; }
+}
+
+/* Loading screen — "Open Ruler" logotype reveal (donut+line+R grows in,
+   then the small "PEN"/"ULER" letters fade in around it, spelling the full
+   OPEN RULER wordmark). Positioned as a fixed-size canvas so all the child
+   coordinates below stay proportional; scaled down as a whole on mobile
+   instead of recalculating each position at a second breakpoint. */
+.loading-logo {
+  position: relative;
+  width: 550px;
+  height: 226px;
+}
+.loading-logo-mark {
+  position: absolute;
+  inset: 0;
+  animation: logoIconIn 780ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: 113px 113px;
+}
+/* The actual mark, supplied as a file (src/assets/logobnw_main.png) rather
+   than rebuilt from shapes/fonts — a hand-drawn CSS approximation couldn't
+   match the real glyph, so this renders the real artwork directly. */
+.loading-logo-icon {
+  display: block;
+  width: 460px;
+  height: auto;
+}
+/* "PEN" and "ULER" are overlaid as real text (not baked into the image) so
+   they can fade in on their own beat after the mark scales in — positions
+   below are measured against the source PNG's own pixel geometry (circle
+   bottom-right for PEN, the R glyph's top-right corner for ULER), scaled to
+   this 460px display width. */
+.loading-logo-pen {
+  position: absolute;
+  left: 194px;
+  top: 198px;
+  font-family: "Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 26px;
+  letter-spacing: 0.02em;
+  color: #0A0A0A;
+  opacity: 0;
+  animation: logoTextIn 380ms ease-out 640ms both;
+}
+/* Uses the brand's existing serif — BIZ UDMincho, already loaded in
+   index.html and used for serif accents elsewhere (see ProjectDetail.jsx's
+   SERIF constant) — to match the R glyph's weight. Pushed further right of
+   the R (was 444px, crowding the glyph) so it reads as its own word. */
+.loading-logo-uler {
+  position: absolute;
+  left: 480px;
+  top: 108px;
+  font-family: "BIZ UDMincho", serif;
+  font-weight: 700;
+  font-size: 26px;
+  color: #0A0A0A;
+  opacity: 0;
+  animation: logoTextIn 380ms ease-out 700ms both;
+}
+@keyframes logoIconIn {
+  0%   { transform: scale(0.15); opacity: 0; }
+  55%  { opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes logoTextIn {
+  0%   { opacity: 0; transform: translateX(-6px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@media (max-width: 768px) {
+  .loading-logo { transform: scale(0.5); }
+}
+
+/* Faint dotted design-canvas grid behind the logo reveal, echoing the
+   ruler/guide-line motif from the Jitter preview this loading screen was
+   modeled on. Sits inside the same fixed full-viewport LoadingScreen root,
+   so no portal is needed here (unlike the percent counter this replaced —
+   that one lived under .page-wrap's transform, this doesn't). */
+.loading-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  animation: gridFadeIn 500ms ease-out both;
+}
+.loading-grid line {
+  stroke: rgba(224, 64, 64, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  vector-effect: non-scaling-stroke;
+}
+@keyframes gridFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Brief loading state */

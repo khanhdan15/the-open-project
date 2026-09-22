@@ -255,7 +255,7 @@ export default function PublicProfile() {
                   key={i}
                   project={project}
                   index={i}
-                  onClick={() => navigate(`/project/${i}`, { state: { project, readOnly: true, profileSlug: slug } })}
+                  onClick={() => navigate(`/project/${i}`, { state: { project, readOnly: true, profileSlug: slug, ownerName: profile?.name } })}
                 />
               ))}
             </div>

@@ -131,7 +131,7 @@ export default function Home() {
         .select('*')
         .eq('is_public', true)
         .order('submitted_at', { ascending: false })
-        .limit(8)
+        .limit(24)
       if (cancelled) return
       setRecentProjects(await attachOwners(rows || []))
     }
@@ -191,6 +191,13 @@ export default function Home() {
   const hasQuery = query.trim().length > 0
   const noResults = hasQuery && !searching && people.length === 0 && projects.length === 0
 
+  // "Recent community work" stays a fixed 2-row block instead of growing
+  // taller and needing a scroll — as more gets submitted, it adds columns
+  // (shrinking every tile a bit) rather than adding rows. 4 columns is the
+  // baseline look for up to 8 projects; beyond that it widens to keep
+  // everything at 2 rows.
+  const recentColumns = Math.max(4, Math.ceil(recentProjects.length / 2))
+
   const goToProject = (project) =>
     navigate(`/project/${project.id}`, { state: { project, readOnly: true, profileSlug: project.owner?.slug } })
   const goToProfile = (person) => navigate(`/u/${person.slug}`)
@@ -233,7 +240,7 @@ export default function Home() {
                   flex: 1, minWidth: 0, boxSizing: 'border-box',
                   fontFamily: HN, fontSize: '14px', color: '#0A0A0A',
                   background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '999px',
-                  padding: '16px 22px', outline: 'none',
+                  padding: '8px 22px', outline: 'none',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
                 }}
               />
@@ -241,14 +248,14 @@ export default function Home() {
                 type="submit"
                 aria-label="Search"
                 style={{
-                  width: '52px', height: '52px', borderRadius: '50%', flexShrink: 0,
+                  width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0,
                   background: '#0A0A0A', border: 'none', cursor: 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="#FFFFFF" strokeWidth="2" />
-                  <path d="M20 20L16.5 16.5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="#FFFFFF" strokeWidth="2.5" />
+                  <path d="M20 20L16.5 16.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </button>
             </form>
@@ -295,7 +302,7 @@ export default function Home() {
                   Nothing shared publicly yet — be the first.
                 </div>
               ) : (
-                <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 16px' }}>
+                <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${recentColumns}, 1fr)`, gap: '20px 16px' }}>
                   {recentProjects.map((project) => (
                     <ProjectResultCard key={project.id} project={project} onClick={() => goToProject(project)} />
                   ))}

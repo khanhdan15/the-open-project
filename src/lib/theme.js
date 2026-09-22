@@ -65,7 +65,9 @@ export const DISCIPLINES = [
   },
 ]
 
-// Same bg + accent-title + body-text combo language as DISCIPLINES.
+// "Timeline" step — id stays sprint/marathon (matches TIMELINE_GUIDANCE in
+// generateBrief.js), display name uses the same running metaphor shown on
+// the combined brief-creation page.
 export const TIMELINES = [
   { id: 'sprint', name: 'Sprint', description: 'Focused projects, streamlined process', color: '#7A2E1E', accentColor: '#C9DDE3', textColor: 'rgba(255,255,255,0.75)' },
   { id: 'marathon', name: 'Marathon', description: 'Complex projects, deeper collaboration', color: '#3E7A8C', accentColor: '#D9E8A0', textColor: 'rgba(255,255,255,0.75)' },

@@ -103,8 +103,8 @@ function pickIndustries(n = 4, category = null) {
 
 // ─── Quick Brief ─────────────────────────────────────────────────────────────
 const TIMELINE_GUIDANCE = {
-  sprint: 'This is a SPRINT (less than a week). Scope the deliverables down to what a single designer could realistically ship in a few days — a focused, high-impact core (e.g. one key deliverable plus 1-2 supporting pieces), not a full multi-channel rollout. Constraints should mention the tight turnaround explicitly.',
-  marathon: 'This is a MARATHON (more than a week). Scope the deliverables up to a fuller system — enough surface area for real exploration and iteration (e.g. a small deliverable set spanning multiple touchpoints). Constraints should reflect the longer runway (more stakeholder rounds, more refinement expected).',
+  sprint: 'This is a SPRINT (less than a week). Scope the deliverables down to what a single designer could realistically ship in a few days: a focused, high-impact core (e.g. one key deliverable plus 1-2 supporting pieces), not a full multi-channel rollout. Constraints should mention the tight turnaround explicitly.',
+  marathon: 'This is a MARATHON (more than a week). Scope the deliverables up to a fuller system with enough surface area for real exploration and iteration (e.g. a small deliverable set spanning multiple touchpoints). Constraints should reflect the longer runway (more stakeholder rounds, more refinement expected).',
 }
 
 function buildPrompt(discipline, { industry, timeline } = {}) {
@@ -115,18 +115,19 @@ function buildPrompt(discipline, { industry, timeline } = {}) {
 Generate a realistic, open-ended design brief for the discipline: ${discipline}.
 ${industry ? `The client's industry should be within: ${industry}.` : ''}
 
-Pick ONE of the following client scenarios that interests you most — or invent something equally unexpected within the same industry:
+Pick ONE of the following client scenarios that interests you most, or invent something equally unexpected within the same industry:
 ${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 Rules:
-- The brief should feel like a real client handoff — specific enough to be grounded, loose enough to allow full creative freedom.
-- Vary the client's scale across generations: sometimes a single-location independent business, sometimes a widely recognized regional, national, or global name. Don't default to only small indie businesses — mix it up.
-- Make the deliverables, budget/timeline constraints, and tone accurate to that client's real-world scale and industry norms. A neighbourhood café brief should read smaller in scope (tighter budget, faster timeline) than a national retailer brief (multi-channel, longer runway) — get that proportion right.
+- The brief should feel like a real client handoff: specific enough to be grounded, loose enough to allow full creative freedom.
+- Vary the client's scale across generations: sometimes a single-location independent business, sometimes a widely recognized regional, national, or global name. Don't default to only small indie businesses; mix it up.
+- Make the deliverables, budget/timeline constraints, and tone accurate to that client's real-world scale and industry norms. A neighbourhood café brief should read smaller in scope (tighter budget, faster timeline) than a national retailer brief (multi-channel, longer runway). Get that proportion right.
 ${timelineNote ? `- ${timelineNote}` : ''}
-- Avoid flat, forgettable corporate scenarios (a generic bank tagline, a boilerplate SaaS logo). Even large, established clients should have a specific, textured story behind the ask — something with a real creative hook, not a template.
+- Avoid flat, forgettable corporate scenarios (a generic bank tagline, a boilerplate SaaS logo). Even large, established clients should have a specific, textured story behind the ask: something with a real creative hook, not a template.
 - Do NOT prescribe visual direction (no "use bold colors" or "minimal aesthetic"). Let the designer interpret freely.
 - Make the summary feel written by the actual client, in their voice.
-- Write every section like a professional design brief document: short, plain-spoken bullet points, not paragraphs. Each bullet is one clear sentence — summarized, not elaborated. Think "brief a designer would actually skim," not a pitch.
+- Write every section like a professional design brief document: short, plain-spoken bullet points, not paragraphs. Each bullet is one clear, complete sentence, summarized rather than elaborated. Think "brief a designer would actually skim," not a pitch.
+- Do not use em dashes (—) anywhere in your response. Use periods, commas, or colons instead, and make sure every sentence and bullet reads as a complete, natural thought.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {
@@ -142,7 +143,7 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
     "Target Audience": ["2-3 short bullets: who this is for"],
     "Deliverables": ["2-4 short bullets: specific outputs the designer must produce"],
     "Brand Tone": ["2-3 short bullets: the personality/voice the work should carry"],
-    "Constraints": ["2-3 short bullets: real-world limits — budget, timeline, format, accessibility, etc."]
+    "Constraints": ["2-3 short bullets: real-world limits such as budget, timeline, format, or accessibility"]
   },
   "discipline": "${discipline}",
   "isChallenge": false,
@@ -181,15 +182,16 @@ function buildChallengePrompt(discipline) {
 Generate a compelling open brief for this week's community challenge.
 Discipline: ${discipline}
 
-Pick ONE of the following scenarios as inspiration — or go somewhere equally bold and unexpected:
+Pick ONE of the following scenarios as inspiration, or go somewhere equally bold and unexpected:
 ${candidates.map((c, i) => `${i + 1}. ${c}`).join('\n')}
 
 Rules:
-- The brief should feel exciting and ambitious — something a design student or junior designer would be proud to submit publicly.
+- The brief should feel exciting and ambitious: something a design student or junior designer would be proud to submit publicly.
 - Vary the client's scale: sometimes a scrappy local project, sometimes a nationally or globally recognized name taking a creative risk. Don't default to only small indie businesses.
-- Keep deliverables and constraints proportional to the client's real scale, and keep it culturally relevant and specific — avoid flat, textbook corporate scenarios even when the client is large.
+- Keep deliverables and constraints proportional to the client's real scale, and keep it culturally relevant and specific. Avoid flat, textbook corporate scenarios even when the client is large.
 - Must be open-ended enough to produce wildly different creative responses from different designers.
 - Do NOT prescribe visual direction. Let the designer interpret freely.
+- Do not use em dashes (—) anywhere in your response. Use periods, commas, or colons instead, and make sure every sentence reads as a complete, natural thought.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {
@@ -198,13 +200,13 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
   "client": "fictional but inspiring client or organization name",
   "industry": "one industry sector",
   "format": "primary deliverable format",
-  "summary": "2-3 sentences. The challenge context and why it matters to the design community. Energetic tone — this is public and exciting.",
+  "summary": "2-3 sentences. The challenge context and why it matters to the design community. Energetic tone: this is public and exciting.",
   "details": {
     "Deliverables": "2-3 specific deliverables",
     "Audience": "who this is for",
     "Tone": "3 adjectives max",
     "Constraints": "1-2 constraints that make it interesting, not limiting",
-    "Goal": "one sentence — what a great submission looks like"
+    "Goal": "one sentence describing what a great submission looks like"
   },
   "discipline": "${discipline}",
   "isChallenge": true,

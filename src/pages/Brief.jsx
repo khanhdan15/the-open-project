@@ -5,46 +5,39 @@ import Header from '../components/Header'
 import LoadingScreen from '../components/LoadingScreen'
 import { useUser } from '../context/UserContext'
 import { generateBrief } from '../lib/generateBrief'
-import { COLORS } from '../lib/theme'
+import { COLORS, TIMELINES } from '../lib/theme'
 import exportIcon from '../assets/export-icon.png'
 import downloadIcon from '../assets/download-icon.png'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
-// A single white rounded-corner info block — the brief result page is a
-// grid of these ("client information", "background", "audience",
-// "goals + deliverables", "tone"), matching the mockup exactly.
-function Block({ label, children, bg = '#FFFFFF', color = '#0A0A0A', style, className = '' }) {
+// A single info block in the flex layout — plain white by default, or the
+// pale-yellow overview card. Four corner dots plus an optional row of extra
+// "side dots" evenly spaced down its sides (only used on the tall overview
+// column, computed from its rendered height).
+function Block({ label, children, overview = false, className = '', style, innerRef }) {
   return (
     <div
-      className={className}
-      style={{
-        background: bg,
-        borderRadius: '16px',
-        padding: '24px',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        ...style,
-      }}
+      ref={innerRef}
+      className={`brief-block${overview ? ' brief-block-overview' : ''}${className ? ` ${className}` : ''}`}
+      style={style}
     >
-      <div style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, color, textTransform: 'uppercase' }}>
-        {label}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        {children}
-      </div>
+      <span className="brief-block-dot" style={{ top: 10, left: 10 }} />
+      <span className="brief-block-dot" style={{ top: 10, right: 10 }} />
+      <span className="brief-block-dot" style={{ bottom: 10, left: 10 }} />
+      <span className="brief-block-dot" style={{ bottom: 10, right: 10 }} />
+      <div className="brief-block-label brief-focus-in">{label}</div>
+      {children}
     </div>
   )
 }
 
-function Bullets({ items, color = '#0A0A0A' }) {
+function Bullets({ items, prefix = '· ' }) {
   const list = Array.isArray(items) ? items : items ? [items] : []
   if (!list.length) return null
   return list.map((item, i) => (
-    <p key={i} style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.6, color, margin: 0 }}>
-      · {item}
+    <p key={i} className="brief-block-line brief-focus-in">
+      {prefix}{item}
     </p>
   ))
 }
@@ -73,9 +66,27 @@ function Icon({ src, width, height }) {
   )
 }
 
-function ActionBar({ onExport, onSave, onRemove, isSaved, onSubmit }) {
+function ActionBar({ onExport, onSave, onRemove, isSaved, onSubmit, onRegenerate, showRegenerate }) {
+  const [spinning, setSpinning] = useState(false)
+  const handleRegenerate = () => {
+    setSpinning(true)
+    setTimeout(() => setSpinning(false), 600)
+    onRegenerate?.()
+  }
   return (
     <div className="brief-action-bar">
+      {showRegenerate && (
+        <button
+          className={`brief-action-btn brief-action-btn-icon${spinning ? ' spinning' : ''}`}
+          onClick={handleRegenerate}
+          title="Regenerate brief"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M21 12a9 9 0 1 1-3-6.7" />
+            <polyline points="21 3 21 9 15 9" />
+          </svg>
+        </button>
+      )}
       <button className="brief-action-btn" onClick={onExport}>
         Export <Icon src={exportIcon} width={18} height={10} />
       </button>
@@ -104,9 +115,28 @@ export default function Brief() {
   const [previewUrl, setPreviewUrl] = useState(null)
   const [imagesBase64, setImagesBase64] = useState([])
   const fileInputRef = useRef(null)
+  const overviewRef = useRef(null)
+  const [sideDots, setSideDots] = useState([])
 
   const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry, timeline, savedBrief } = location.state || {}
   const categoryColor = savedBrief?.categoryColor || folderColor
+  const timelineName = TIMELINES.find((t) => t.id === timeline)?.name
+
+  // Extra tick-dots spaced evenly down the tall Overview column's sides,
+  // between the corner dots — recalculated whenever the brief content (and
+  // therefore the column's height) changes, and on window resize.
+  useEffect(() => {
+    function layout() {
+      const h = overviewRef.current?.offsetHeight || 0
+      const count = Math.max(0, Math.floor(h / 140) - 1)
+      const dots = []
+      for (let i = 1; i <= count; i++) dots.push((h / (count + 1)) * i)
+      setSideDots(dots)
+    }
+    layout()
+    window.addEventListener('resize', layout)
+    return () => window.removeEventListener('resize', layout)
+  }, [brief, submitMode])
 
   // Load brief — use savedBrief directly if available, otherwise call API
   useEffect(() => {
@@ -215,8 +245,11 @@ export default function Brief() {
 
   return (
     <>
-    <div className="page-enter" style={{ background: COLORS.darkBg, minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="page-enter brief-result-bg" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
       <Header dark />
+      <div className="ruler-edge ruler-edge-left" aria-hidden="true" />
+      <div className="ruler-edge ruler-edge-right" aria-hidden="true" />
 
       {loading && <LoadingScreen fixed={false} label="Generating brief" />}
 
@@ -227,112 +260,61 @@ export default function Brief() {
       )}
 
       {!loading && !error && brief && (
-        <div className="grid-paper-dark" style={{ flex: 1, padding: '28px 40px 120px' }}>
+        <div style={{ flex: 1, maxWidth: '1080px', width: '100%', margin: '0 auto', padding: '40px 60px 100px', boxSizing: 'border-box' }}>
 
-          {/* Date / brief no. / regenerate, plus title + short summary —
-              one shared translucent dark veil sits behind all of it so the
-              grid fades to half-strength and the text reads cleanly. */}
-          <div style={{ position: 'relative', marginBottom: '48px' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', pointerEvents: 'none' }} />
-            <div style={{ position: 'relative', padding: '24px 24px 32px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <span style={{ fontFamily: HN, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em', color: COLORS.accentPink }}>
-                  {brief.issued || 'Date'}
-                </span>
-                <span style={{ fontFamily: HN, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.12em', color: COLORS.accentPink }}>
-                  Brief {brief.brief_id?.replace('brief-', '') || '01'}{timeline ? ` · ${timeline}` : ''}
-                </span>
-                {!savedBrief ? (
-                  <button
-                    onClick={handleRegenerate}
-                    title="Regenerate brief"
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: '16px', color: COLORS.accentPink }}
-                  >
-                    ↻
-                  </button>
-                ) : <span style={{ width: '16px' }} />}
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <h1 style={{
-                  fontFamily: HN, fontSize: 'clamp(32px, 6vw, 56px)', fontWeight: 400,
-                  textTransform: 'uppercase', color: COLORS.darkText, lineHeight: 1.1, margin: '0 0 14px',
-                }}>
-                  {brief.title}
-                </h1>
-                {!submitMode && brief.summary && (
-                  <p style={{ fontFamily: HN, fontSize: '15px', fontWeight: 700, color: COLORS.darkText, margin: 0 }}>
-                    {brief.summary}
-                  </p>
-                )}
-              </div>
-            </div>
+          {/* Title + date — the regenerate control now lives in the
+              floating action bar itself (first, before Export) instead of
+              up here. */}
+          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+            <h1 className="brief-result-title brief-focus-in" style={{
+              fontSize: 'clamp(36px, 6vw, 56px)', margin: '0 0 8px', color: COLORS.darkText,
+            }}>
+              {brief.title}
+            </h1>
+            <p style={{ fontFamily: HN, fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: COLORS.accentPink, margin: 0 }}>
+              Created on {brief.issued || 'Date'}
+            </p>
           </div>
 
           {!submitMode ? (
             <>
-              {/* Info blocks — client info / background / audience (row 1),
-                  goals + deliverables / tone (row 2) */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: '40px 24px',
-                alignItems: 'start',
-                marginBottom: '32px',
-              }}>
-                <Block
-                  label="client information"
-                  bg={COLORS.blockDark}
-                  color={COLORS.blockDarkText}
-                  className="slide-top"
-                  style={{ gridColumn: '1', gridRow: '1', minHeight: '140px', animationDelay: '0ms' }}
-                >
-                  <p style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.8, color: COLORS.blockDarkText, margin: 0 }}>client: {brief.client}</p>
-                  <p style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.8, color: COLORS.blockDarkText, margin: 0 }}>industry: {brief.industry}</p>
-                  <p style={{ fontFamily: HN, fontSize: '12px', lineHeight: 1.8, color: COLORS.blockDarkText, margin: 0 }}>format: {brief.format}</p>
+              {/* Flex block layout — a tall pale-yellow Overview column on
+                  the left, then a right column that just stacks blocks as
+                  needed (Target Audience + Timeline & Reviews side by side,
+                  Deliverables full width below). */}
+              <div className="brief-layout">
+                <Block overview innerRef={overviewRef} style={{ animationDelay: '0ms' }} label="Project Overview">
+                  <div className="brief-pill-row">
+                    <span className="brief-pill brief-focus-in">Client: {brief.client}</span>
+                    <span className="brief-pill brief-focus-in">Industry: {brief.industry}</span>
+                    <span className="brief-pill brief-focus-in">Format: {brief.format}</span>
+                  </div>
+                  <Bullets items={brief.details?.Background} />
+                  <Bullets items={brief.details?.['Brand Tone']} prefix="Voice: " />
+                  {sideDots.map((y, i) => (
+                    <span key={`l${i}`} className="brief-block-dot" style={{ top: y, left: 10 }} />
+                  ))}
+                  {sideDots.map((y, i) => (
+                    <span key={`r${i}`} className="brief-block-dot" style={{ top: y, right: 10 }} />
+                  ))}
                 </Block>
 
-                <Block
-                  label="background"
-                  bg={COLORS.blockPurple}
-                  color={COLORS.blockLightText}
-                  className="slide-top"
-                  style={{ gridColumn: '2', gridRow: '1', minHeight: '260px', animationDelay: '80ms' }}
-                >
-                  <Bullets items={brief.details?.Background} color={COLORS.blockLightText} />
-                </Block>
+                <div className="brief-col-right">
+                  <div className="brief-row">
+                    <Block label="Target Audience">
+                      <Bullets items={brief.details?.['Target Audience']} />
+                    </Block>
+                    <Block label="Timeline & Reviews">
+                      {timelineName && <p className="brief-block-line brief-focus-in">{timelineName}</p>}
+                      <Bullets items={brief.details?.Constraints} />
+                    </Block>
+                  </div>
 
-                <Block
-                  label="audience"
-                  bg={COLORS.blockBlue}
-                  color={COLORS.blockLightText}
-                  className="slide-top"
-                  style={{ gridColumn: '3', gridRow: '1', minHeight: '260px', animationDelay: '160ms' }}
-                >
-                  <Bullets items={brief.details?.['Target Audience']} color={COLORS.blockLightText} />
-                </Block>
-
-                <Block
-                  label="goals + deliverables"
-                  bg={COLORS.blockBlue}
-                  color={COLORS.blockLightText}
-                  className="slide-top"
-                  style={{ gridColumn: '1 / 3', gridRow: '2', minHeight: '260px', animationDelay: '240ms' }}
-                >
-                  <Bullets items={brief.details?.Goals} color={COLORS.blockLightText} />
-                  <Bullets items={brief.details?.Deliverables} color={COLORS.blockLightText} />
-                  <Bullets items={brief.details?.Constraints} color={COLORS.blockLightText} />
-                </Block>
-
-                <Block
-                  label="tone"
-                  bg={COLORS.blockDark}
-                  color={COLORS.blockDarkText}
-                  className="slide-top"
-                  style={{ gridColumn: '3', gridRow: '2', minHeight: '140px', animationDelay: '320ms' }}
-                >
-                  <Bullets items={brief.details?.['Brand Tone']} color={COLORS.blockDarkText} />
-                </Block>
+                  <Block label="Deliverables">
+                    <Bullets items={brief.details?.Deliverables} />
+                    <Bullets items={brief.details?.Goals} />
+                  </Block>
+                </div>
               </div>
             </>
           ) : (
@@ -371,6 +353,7 @@ export default function Brief() {
           )}
         </div>
       )}
+      </div>
     </div>
 
     {/* Action bar — portaled straight to <body>. Both the page-enter and
@@ -381,7 +364,15 @@ export default function Brief() {
         sidesteps the whole hierarchy — always bottom-right, no scrolling. */}
     {!loading && !error && brief && createPortal(
       <div style={{ position: 'fixed', bottom: '24px', right: '40px', zIndex: 999 }}>
-        <ActionBar onExport={() => window.print()} onSave={handleSave} onRemove={handleRemove} isSaved={!!brief.id} onSubmit={handleSubmitProject} />
+        <ActionBar
+          onExport={() => window.print()}
+          onSave={handleSave}
+          onRemove={handleRemove}
+          isSaved={!!brief.id}
+          onSubmit={handleSubmitProject}
+          onRegenerate={handleRegenerate}
+          showRegenerate={!savedBrief}
+        />
       </div>,
       document.body
     )}

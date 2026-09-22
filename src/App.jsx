@@ -1,8 +1,7 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
-import FolderSelect from './pages/FolderSelect'
-import IndustrySelect from './pages/IndustrySelect'
-import TimelineSelect from './pages/TimelineSelect'
+import NewBrief from './pages/NewBrief'
 import Brief from './pages/Brief'
 import Signup from './pages/Signup'
 import Portfolio from './pages/Portfolio'
@@ -14,18 +13,32 @@ import PublicProfile from './pages/PublicProfile'
 import LoadingScreen from './components/LoadingScreen'
 import { useUser } from './context/UserContext'
 
+// Design-only preview: simulates a short auth check so the full
+// 0→95%-ease, then-100%-snap-and-fade sequence can be watched on demand at
+// /loading-preview, without needing to actually sign in/out to trigger it.
+function LoadingPreview() {
+  const [authLoading, setAuthLoading] = useState(true)
+  useEffect(() => {
+    const t = setTimeout(() => setAuthLoading(false), 1000)
+    return () => clearTimeout(t)
+  }, [])
+  return <LoadingScreen fixed={false} authLoading={authLoading} />
+}
+
 export default function App() {
   const { loading } = useUser()
+  const [showLoading, setShowLoading] = useState(true)
+  const handleDone = useCallback(() => setShowLoading(false), [])
 
-  if (loading) return <LoadingScreen />
+  if (showLoading) {
+    return <LoadingScreen authLoading={loading} onDone={handleDone} />
+  }
 
   return (
     <div className="page-wrap">
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/new" element={<FolderSelect />} />
-      <Route path="/new/industry" element={<IndustrySelect />} />
-      <Route path="/new/timeline" element={<TimelineSelect />} />
+      <Route path="/new" element={<NewBrief />} />
       <Route path="/brief" element={<Brief />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/portfolio" element={<Portfolio />} />
@@ -34,6 +47,7 @@ export default function App() {
       <Route path="/weekly-challenge" element={<WeeklyChallenge />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/u/:slug" element={<PublicProfile />} />
+      <Route path="/loading-preview" element={<LoadingPreview />} />
     </Routes>
     </div>
   )
