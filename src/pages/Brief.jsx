@@ -117,6 +117,22 @@ export default function Brief() {
   const fileInputRef = useRef(null)
   const overviewRef = useRef(null)
   const [sideDots, setSideDots] = useState([])
+  const [loadingMessage, setLoadingMessage] = useState('')
+
+  // The API call can take anywhere from a couple seconds to ~30s (see
+  // REQUEST_TIMEOUT_MS in generateBrief.js). Without any feedback, a wait
+  // past a few seconds reads as a frozen page rather than "still working" —
+  // this escalates a reassuring message the longer it runs.
+  useEffect(() => {
+    // Deferred via setTimeout(...,0) rather than calling setLoadingMessage
+    // directly in the effect body, per this project's
+    // react-hooks/set-state-in-effect convention.
+    const t0 = setTimeout(() => setLoadingMessage(''), 0)
+    if (!loading) return () => clearTimeout(t0)
+    const t1 = setTimeout(() => setLoadingMessage('Writing your brief...'), 6000)
+    const t2 = setTimeout(() => setLoadingMessage('Still working, this can take up to 30 seconds...'), 15000)
+    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2) }
+  }, [loading])
 
   const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry, timeline, savedBrief } = location.state || {}
   const categoryColor = savedBrief?.categoryColor || folderColor
@@ -251,12 +267,24 @@ export default function Brief() {
       <div className="ruler-edge ruler-edge-left" aria-hidden="true" />
       <div className="ruler-edge ruler-edge-right" aria-hidden="true" />
 
-      {loading && <LoadingScreen fixed={false} label="Generating brief" />}
+      {loading && <LoadingScreen fixed={false} message={loadingMessage} />}
 
       {!loading && error && (
-        <p style={{ textAlign: 'center', color: COLORS.darkMuted, marginTop: '20vh', fontFamily: HN, fontSize: '13px' }}>
-          {error}
-        </p>
+        <div style={{ textAlign: 'center', marginTop: '20vh' }}>
+          <p style={{ color: COLORS.darkMuted, fontFamily: HN, fontSize: '13px', margin: '0 0 16px' }}>
+            {error}
+          </p>
+          <button
+            onClick={handleRegenerate}
+            style={{
+              fontFamily: HN, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em',
+              background: 'none', color: COLORS.accentPink, border: `1px solid ${COLORS.accentPink}`,
+              padding: '10px 24px', borderRadius: '999px', cursor: 'pointer',
+            }}
+          >
+            Try again
+          </button>
+        </div>
       )}
 
       {!loading && !error && brief && (

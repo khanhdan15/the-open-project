@@ -19,7 +19,7 @@ const MIN_VISIBLE_MS = 1150
 // user's actual artwork rather than a rebuilt approximation; only the two
 // words are overlaid as real text (see .loading-logo-pen/-uler in
 // index.css), positioned from the PNG's own measured geometry.
-export default function LoadingScreen({ fixed = true, authLoading = true, onDone }) {
+export default function LoadingScreen({ fixed = true, authLoading = true, onDone, message }) {
   const [minTimeElapsed, setMinTimeElapsed] = useState(false)
   const [exiting, setExiting] = useState(false)
 
@@ -54,8 +54,10 @@ export default function LoadingScreen({ fixed = true, authLoading = true, onDone
         overflow: 'hidden',
         zIndex: 300,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: '18px',
         opacity: exiting ? 0 : 1,
         transition: `opacity ${FADE_MS}ms ease`,
       }}
@@ -77,6 +79,8 @@ export default function LoadingScreen({ fixed = true, authLoading = true, onDone
         <div className="loading-logo-pen">PEN</div>
         <div className="loading-logo-uler">ULER</div>
       </div>
+
+      {message && <div className="loading-message">{message}</div>}
     </div>
   )
 }

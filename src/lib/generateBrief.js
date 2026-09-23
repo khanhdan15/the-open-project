@@ -151,12 +151,27 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
 }`
 }
 
+// Bounds how long we'll wait on a hung request. Without this, a slow or
+// stalled Anthropic/Netlify Function response leaves the caller's promise
+// pending indefinitely, which reads to the user as a frozen loading screen
+// with no way out short of reloading the page.
+const REQUEST_TIMEOUT_MS = 30000
+
 export async function generateBrief(discipline, options = {}) {
-  const response = await fetch('/api/generate-brief', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: buildPrompt(discipline, options) }),
-  })
+  let response
+  try {
+    response = await fetch('/api/generate-brief', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: buildPrompt(discipline, options) }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+  } catch (e) {
+    if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+      throw new Error('This is taking longer than usual. Please try again.', { cause: e })
+    }
+    throw new Error('Could not reach the server. Check your connection and try again.', { cause: e })
+  }
 
   const data = await response.json()
   console.log('API response status:', response.status)
@@ -216,11 +231,20 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
 }
 
 export async function generateChallengeBrief(discipline) {
-  const response = await fetch('/api/generate-brief', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: buildChallengePrompt(discipline) }),
-  })
+  let response
+  try {
+    response = await fetch('/api/generate-brief', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: buildChallengePrompt(discipline) }),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
+  } catch (e) {
+    if (e.name === 'TimeoutError' || e.name === 'AbortError') {
+      throw new Error('This is taking longer than usual. Please try again.', { cause: e })
+    }
+    throw new Error('Could not reach the server. Check your connection and try again.', { cause: e })
+  }
 
   const data = await response.json()
   console.log('Challenge API raw data:', JSON.stringify(data))
