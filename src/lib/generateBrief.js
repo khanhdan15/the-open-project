@@ -126,7 +126,8 @@ ${timelineNote ? `- ${timelineNote}` : ''}
 - Avoid flat, forgettable corporate scenarios (a generic bank tagline, a boilerplate SaaS logo). Even large, established clients should have a specific, textured story behind the ask: something with a real creative hook, not a template.
 - Do NOT prescribe visual direction (no "use bold colors" or "minimal aesthetic"). Let the designer interpret freely.
 - Make the summary feel written by the actual client, in their voice.
-- Write every section like a professional design brief document: short, plain-spoken bullet points, not paragraphs. Each bullet is one clear, complete sentence, summarized rather than elaborated. Think "brief a designer would actually skim," not a pitch.
+- Write every section like a professional design brief document: short, plain-spoken bullet points, not paragraphs. Think "brief a designer would actually skim," not a pitch.
+- Keep every bullet to ONE short sentence, 14 words or fewer. No sub-clauses stitched together with commas or semicolons, if a bullet needs two ideas, split it into two bullets or cut one. If you can't say it in 14 words, you're including too much detail, cut it down.
 - Do not use em dashes (—) anywhere in your response. Use periods, commas, or colons instead, and make sure every sentence and bullet reads as a complete, natural thought.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
@@ -136,14 +137,14 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
   "client": "fictional but believable client name",
   "industry": "one industry sector",
   "format": "primary deliverable format (e.g. Visual Identity, Editorial Layout, Campaign, Typeface, Installation)",
-  "summary": "2-3 sentences. Who the client is, what they need, and why it matters. Written as if from the client. No visual prescriptions.",
+  "summary": "Exactly 1-2 short sentences, 35 words max total. Who the client is and what they need. Written as if from the client. No visual prescriptions.",
   "details": {
-    "Background": ["2-3 short bullets: who the client is and the context behind the project"],
-    "Goals": ["2-3 short bullets: what the project needs to achieve"],
-    "Target Audience": ["2-3 short bullets: who this is for"],
-    "Deliverables": ["2-4 short bullets: specific outputs the designer must produce"],
-    "Brand Tone": ["2-3 short bullets: the personality/voice the work should carry"],
-    "Constraints": ["2-3 short bullets: real-world limits such as budget, timeline, format, or accessibility"]
+    "Background": ["2 short bullets (14 words max each): who the client is and the context behind the project"],
+    "Goals": ["2 short bullets (14 words max each): what the project needs to achieve"],
+    "Target Audience": ["2 short bullets (14 words max each): who this is for"],
+    "Deliverables": ["2-3 short bullets (14 words max each): specific outputs the designer must produce"],
+    "Brand Tone": ["1-2 short bullets (14 words max each): the personality/voice the work should carry"],
+    "Constraints": ["2 short bullets (14 words max each): real-world limits such as budget, timeline, format, or accessibility"]
   },
   "discipline": "${discipline}",
   "isChallenge": false,
@@ -206,6 +207,7 @@ Rules:
 - Keep deliverables and constraints proportional to the client's real scale, and keep it culturally relevant and specific. Avoid flat, textbook corporate scenarios even when the client is large.
 - Must be open-ended enough to produce wildly different creative responses from different designers.
 - Do NOT prescribe visual direction. Let the designer interpret freely.
+- Keep every phrase short and punchy, 14 words or fewer per sentence/bullet. No sub-clauses stitched together with commas or semicolons.
 - Do not use em dashes (—) anywhere in your response. Use periods, commas, or colons instead, and make sure every sentence reads as a complete, natural thought.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
@@ -215,13 +217,13 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
   "client": "fictional but inspiring client or organization name",
   "industry": "one industry sector",
   "format": "primary deliverable format",
-  "summary": "2-3 sentences. The challenge context and why it matters to the design community. Energetic tone: this is public and exciting.",
+  "summary": "Exactly 1-2 short sentences, 35 words max total. The challenge context and why it matters. Energetic tone.",
   "details": {
-    "Deliverables": "2-3 specific deliverables",
-    "Audience": "who this is for",
+    "Deliverables": "2-3 specific deliverables, 14 words max each",
+    "Audience": "who this is for, one short phrase",
     "Tone": "3 adjectives max",
-    "Constraints": "1-2 constraints that make it interesting, not limiting",
-    "Goal": "one sentence describing what a great submission looks like"
+    "Constraints": "1-2 constraints that make it interesting, 14 words max each",
+    "Goal": "one short sentence, 14 words max, describing what a great submission looks like"
   },
   "discipline": "${discipline}",
   "isChallenge": true,

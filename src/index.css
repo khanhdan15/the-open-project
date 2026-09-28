@@ -137,6 +137,41 @@ button { cursor: pointer; }
   to { transform: rotate(180deg); }
 }
 
+/* Mobile — the bar was overflowing off the right edge of the screen
+   (fixed at right:40px with nowrap pill buttons wider than the viewport).
+   Pin it full-width across the bottom instead, buttons sharing the space
+   evenly with tighter padding so all four fit without wrapping or cutoff.
+   Desktop is untouched. */
+@media (max-width: 768px) {
+  .brief-action-bar-wrap {
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 12px !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+  .brief-action-bar {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 6px;
+  }
+  .brief-action-btn {
+    padding: 10px 12px;
+    font-size: 11px;
+    gap: 5px;
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .brief-action-btn-icon {
+    padding: 10px;
+    flex: 0 0 auto;
+  }
+}
+
 /* Highlight work — a bottom-aligned row of small thumbnails that fill the
    row width (like a filmstrip). Hovering one pops it up much larger, on top
    of its neighbors, with its title as a caption — the rest stay put. */
@@ -361,11 +396,23 @@ button { cursor: pointer; }
     box-sizing: border-box;
     align-items: center;
     justify-content: center;
-    background: #83C7F9;
+    /* Flat solid blue read as too muted against most backgrounds — a
+       soft drifting blue/white gradient (same technique as
+       .brief-action-bar) makes the collapsed trigger read as a clear,
+       alive button. Only the collapsed circle; .expanded below resets to
+       a plain gray panel background. */
+    background-image: linear-gradient(120deg, #83C7F9, #FFFFFF, #83C7F9);
+    background-size: 220% 220%;
+    animation: sidebarTriggerDrift 6s ease-in-out infinite;
     box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     cursor: pointer;
     z-index: 200;
     transition: width 0.3s cubic-bezier(0.65,0,0.35,1), height 0.3s cubic-bezier(0.65,0,0.35,1), border-radius 0.3s ease, background 0.3s ease;
+  }
+  @keyframes sidebarTriggerDrift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
   .portfolio-sidebar-mobile.expanded {
     width: calc(100vw - 32px);
@@ -377,6 +424,7 @@ button { cursor: pointer; }
     justify-content: flex-start;
     overflow-y: auto;
     background: #D4D4D4;
+    animation: none;
     cursor: default;
   }
   .portfolio-sidebar-mobile .portfolio-sidebar-collapsed-label {
@@ -395,6 +443,7 @@ button { cursor: pointer; }
   .portfolio-sidebar-mobile.expanded .portfolio-sidebar-close {
     display: flex !important;
   }
+
 }
 
 /* ─── Visual identity ──────────────────────────────────────────────────── */

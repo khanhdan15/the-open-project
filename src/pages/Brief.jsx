@@ -11,6 +11,48 @@ import downloadIcon from '../assets/download-icon.png'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
+// Local preview only — visit /brief?mock=1 to see the result page's layout
+// without hitting the real API (which needs a Netlify Function and won't
+// respond to a plain `npm run dev`). Matches the exact shape generateBrief()
+// returns, so it exercises the real rendering code, not a separate mock UI.
+const MOCK_BRIEF = {
+  brief_id: 'brief-mock',
+  title: 'Streetwear Capsule Drop',
+  client: 'Rewind Studio',
+  industry: 'Fashion & Apparel',
+  format: 'Capsule drop identity',
+  summary: 'We are relaunching after a two year hiatus and need an identity that feels collectible, not seasonal.',
+  details: {
+    Background: [
+      'The client is relaunching after a 2-year hiatus and is targeting a younger, resale-savvy audience.',
+      'The look should feel collectible, not seasonal.',
+    ],
+    Goals: [
+      'Build hype ahead of the drop without revealing the full collection.',
+      'Give the brand a distinct visual identity separate from its earlier run.',
+    ],
+    'Target Audience': [
+      'Ages 18 to 24, active in sneaker and streetwear resale communities.',
+      'Follows drop culture, where scarcity and story matter more than price.',
+    ],
+    Deliverables: [
+      'Capsule logo lockup.',
+      'Three product tags plus a packaging insert.',
+      'One launch teaser graphic.',
+    ],
+    'Brand Tone': [
+      'Raw, confident, and a little irreverent, avoiding the usual polished streetwear look.',
+    ],
+    Constraints: [
+      'Tight turnaround: launch assets due within the week.',
+      'One consolidated round of feedback before final files.',
+    ],
+  },
+  discipline: 'Brand & Identity',
+  isChallenge: false,
+  status: 'ongoing',
+}
+
 // A single info block in the flex layout — plain white by default, or the
 // pale-yellow overview card. Four corner dots plus an optional row of extra
 // "side dots" evenly spaced down its sides (only used on the tall overview
@@ -154,8 +196,18 @@ export default function Brief() {
     return () => window.removeEventListener('resize', layout)
   }, [brief, submitMode])
 
-  // Load brief — use savedBrief directly if available, otherwise call API
+  const isMock = new URLSearchParams(location.search).get('mock') === '1'
+
+  // Load brief — mock (local preview) > savedBrief > real API call
   useEffect(() => {
+    if (isMock) {
+      setBrief({
+        ...MOCK_BRIEF,
+        issued: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      })
+      setLoading(false)
+      return
+    }
     if (savedBrief) {
       setBrief(savedBrief)
       setLoading(false)
@@ -181,7 +233,7 @@ export default function Brief() {
     }
     load()
     return () => { cancelled = true }
-  }, [folderName, industry, timeline])
+  }, [folderName, industry, timeline, isMock])
 
   // File helpers
   const readAllBase64 = (files) => {
@@ -391,7 +443,7 @@ export default function Brief() {
         them pins it to that box instead of the real viewport. A portal
         sidesteps the whole hierarchy — always bottom-right, no scrolling. */}
     {!loading && !error && brief && createPortal(
-      <div style={{ position: 'fixed', bottom: '24px', right: '40px', zIndex: 999 }}>
+      <div className="brief-action-bar-wrap" style={{ position: 'fixed', bottom: '24px', right: '40px', zIndex: 999 }}>
         <ActionBar
           onExport={() => window.print()}
           onSave={handleSave}
