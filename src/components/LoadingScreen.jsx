@@ -80,7 +80,7 @@ export default function LoadingScreen({ fixed = true, authLoading = true, onDone
         <div className="loading-logo-uler">ULER</div>
       </div>
 
-      {message && <div className="loading-message">{message}</div>}
+      {message && <div key={message} className="loading-message">{message}</div>}
     </div>
   )
 }

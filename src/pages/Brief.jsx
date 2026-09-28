@@ -11,6 +11,24 @@ import downloadIcon from '../assets/download-icon.png'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
+// Rotates while a brief is generating so the wait reads as alive rather
+// than frozen — a mix of playful "what it's doing" status lines and design
+// quotes, cycled on an interval (see the loading-message effect below).
+const LOADING_MESSAGES = [
+  'Cooking up your brief...',
+  'Sharpening the pencils...',
+  '"Design is intelligence made visible." — Alina Wheeler',
+  'Mixing the color palette...',
+  'Aligning everything to the grid...',
+  '"Simplicity is the ultimate sophistication." — Leonardo da Vinci',
+  'Brewing a fresh creative brief...',
+  '"Good design is obvious. Great design is transparent." — Joe Sparano',
+  'Measuring twice, briefing once...',
+  '"Design is not just what it looks like. Design is how it works." — Steve Jobs',
+  'Still whisking the ideas together...',
+  '"Style is knowing who you are." — Massimo Vignelli',
+]
+
 // Local preview only — visit /brief?mock=1 to see the result page's layout
 // without hitting the real API (which needs a Netlify Function and won't
 // respond to a plain `npm run dev`). Matches the exact shape generateBrief()
@@ -164,16 +182,20 @@ export default function Brief() {
   // The API call can take anywhere from a couple seconds to ~30s (see
   // REQUEST_TIMEOUT_MS in generateBrief.js). Without any feedback, a wait
   // past a few seconds reads as a frozen page rather than "still working" —
-  // this escalates a reassuring message the longer it runs.
+  // this cycles through a fun, ever-changing set of status lines and design
+  // quotes for as long as loading runs, instead of one static caption.
   useEffect(() => {
     // Deferred via setTimeout(...,0) rather than calling setLoadingMessage
     // directly in the effect body, per this project's
     // react-hooks/set-state-in-effect convention.
-    const t0 = setTimeout(() => setLoadingMessage(''), 0)
+    const t0 = setTimeout(() => setLoadingMessage(loading ? LOADING_MESSAGES[0] : ''), 0)
     if (!loading) return () => clearTimeout(t0)
-    const t1 = setTimeout(() => setLoadingMessage('Writing your brief...'), 6000)
-    const t2 = setTimeout(() => setLoadingMessage('Still working, this can take up to 30 seconds...'), 15000)
-    return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2) }
+    let i = 0
+    const interval = setInterval(() => {
+      i = (i + 1) % LOADING_MESSAGES.length
+      setLoadingMessage(LOADING_MESSAGES[i])
+    }, 3200)
+    return () => { clearTimeout(t0); clearInterval(interval) }
   }, [loading])
 
   const { folderName = 'Digital & Screen', folderColor = '#82DFFD', industry, timeline, savedBrief } = location.state || {}

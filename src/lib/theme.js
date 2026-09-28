@@ -63,6 +63,23 @@ export const DISCIPLINES = [
     textColor: '#FFFFFF',
     items: ['Branding', 'Packaging', 'Visual identity'],
   },
+  // Physical/object-focused disciplines — the four above are all
+  // graphic/screen work, these give industrial and spatial designers a home
+  // that actually matches how they work (objects and spaces, not layouts).
+  {
+    name: 'Industrial & Product Design',
+    color: '#54544A',
+    accentColor: '#FF8A3D',
+    textColor: '#F1EADA',
+    items: ['Product design', 'Packaging structure', 'Furniture'],
+  },
+  {
+    name: 'Spatial & Environmental',
+    color: '#2C3639',
+    accentColor: '#A8C9B5',
+    textColor: '#FFFFFF',
+    items: ['Exhibition design', 'Retail & interiors', 'Wayfinding'],
+  },
 ]
 
 // "Timeline" step — id stays sprint/marathon (matches TIMELINE_GUIDANCE in

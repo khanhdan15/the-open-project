@@ -939,6 +939,9 @@ button { cursor: pointer; }
   font-size: 12px;
   letter-spacing: 0.04em;
   color: rgba(10,10,10,0.45);
+  max-width: 320px;
+  text-align: center;
+  line-height: 1.5;
   animation: loadingMessageIn 400ms ease-out both;
 }
 @keyframes loadingMessageIn {
