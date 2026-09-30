@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import AddProjectModal from '../components/AddProjectModal'
+import ImageViewer from '../components/ImageViewer'
 import { useUser } from '../context/UserContext'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -68,6 +69,9 @@ export default function ProjectDetail() {
   const [deleting, setDeleting] = useState(false)
   const [togglingHighlight, setTogglingHighlight] = useState(false)
   const [editing, setEditing] = useState(false)
+  // Index of the image open in the full-screen viewer, or null when closed.
+  const [viewerIndex, setViewerIndex] = useState(null)
+  const closeViewer = useCallback(() => setViewerIndex(null), [])
 
   const [project, setProject] = useState(() => location.state?.project || null)
   const [isHighlight, setIsHighlight] = useState(project?.isHighlight || false)
@@ -311,7 +315,9 @@ export default function ProjectDetail() {
                 src={allImages[0]}
                 alt={displayTitle}
                 decoding="async"
+                onClick={() => setViewerIndex(0)}
                 style={{
+                  cursor: 'zoom-in',
                   width: '100%',
                   display: 'block',
                   borderRadius: '4px',
@@ -330,7 +336,9 @@ export default function ProjectDetail() {
                       alt={`${displayTitle} ${i + 2}`}
                       loading="lazy"
                       decoding="async"
+                      onClick={() => setViewerIndex(i + 1)}
                       style={{
+                        cursor: 'zoom-in',
                         width: '100%',
                         aspectRatio: '1 / 1',
                         objectFit: 'cover',
@@ -341,6 +349,14 @@ export default function ProjectDetail() {
                     />
                   ))}
                 </div>
+              )}
+              {viewerIndex !== null && (
+                <ImageViewer
+                  images={allImages}
+                  startIndex={viewerIndex}
+                  title={displayTitle}
+                  onClose={closeViewer}
+                />
               )}
             </div>
           )}

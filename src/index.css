@@ -967,3 +967,78 @@ button { cursor: pointer; }
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(350%); }
 }
+
+/* Full-screen project image viewer (see ImageViewer.jsx) — Behance/PDF
+   style: all images stacked full-width on a dark backdrop, scrollable,
+   opened by clicking any image on a project page. */
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10,10,10,0.94);
+  overflow-y: auto;
+  cursor: zoom-out;
+  animation: imageViewerIn 220ms ease-out both;
+}
+@keyframes imageViewerIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.image-viewer-stack {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 72px 40px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.image-viewer-stack img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: default;
+  /* Leaves room under the fixed close button when scrolled to an image. */
+  scroll-margin-top: 72px;
+}
+.image-viewer-title {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 8px;
+}
+.image-viewer-count {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  margin-top: 16px;
+}
+.image-viewer-close {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: #FFFFFF;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 1;
+  transition: background 0.15s ease;
+}
+.image-viewer-close:hover {
+  background: rgba(255,255,255,0.25);
+}
+@media (max-width: 768px) {
+  .image-viewer-stack {
+    padding: 64px 12px 32px;
+    gap: 8px;
+  }
+  .image-viewer-close {
+    top: 12px;
+    right: 12px;
+  }
+}
