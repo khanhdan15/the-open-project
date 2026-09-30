@@ -66,7 +66,7 @@ function ProjectCard({ project, index, onClick }) {
         }}
       >
         {thumbnail && (
-          <img src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src={thumbnail} alt={displayTitle} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         )}
         {isHighlight && (
           <span
@@ -345,7 +345,7 @@ export default function Portfolio() {
             }}
           >
             {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt={displayName || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              <img src={profile.avatarUrl} loading="lazy" decoding="async" alt={displayName || 'Avatar'} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             ) : (
               <span style={{ fontFamily: HN, fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', color: '#999' }}>
                 {avatarUploading ? 'uploading…' : 'avatar'}

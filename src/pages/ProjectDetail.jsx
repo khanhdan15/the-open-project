@@ -310,6 +310,7 @@ export default function ProjectDetail() {
               <img
                 src={allImages[0]}
                 alt={displayTitle}
+                decoding="async"
                 style={{
                   width: '100%',
                   display: 'block',
@@ -327,6 +328,8 @@ export default function ProjectDetail() {
                       key={i}
                       src={img}
                       alt={`${displayTitle} ${i + 2}`}
+                      loading="lazy"
+                      decoding="async"
                       style={{
                         width: '100%',
                         aspectRatio: '1 / 1',

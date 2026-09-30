@@ -53,7 +53,7 @@ function ProjectResultCard({ project, onClick }) {
         }}
       >
         {thumbnail && (
-          <img src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src={thumbnail} alt={displayTitle} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         )}
         {project.isHighlight && (
           <span style={{
@@ -93,7 +93,7 @@ function PersonResultCard({ person, onClick }) {
         overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         {person.avatar_url ? (
-          <img src={person.avatar_url} alt={person.name || person.slug} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <img src={person.avatar_url} loading="lazy" decoding="async" alt={person.name || person.slug} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         ) : (
           <span style={{ fontFamily: HN, fontSize: '8px', textTransform: 'uppercase', color: '#999' }}>photo</span>
         )}

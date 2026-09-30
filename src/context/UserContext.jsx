@@ -3,6 +3,43 @@ import { supabase } from '../lib/supabase'
 
 const UserContext = createContext(null)
 
+// Longest side, in px, that uploaded photos are scaled down to. Plenty for a
+// full-width project page on a retina screen, far smaller than a raw phone
+// photo (often 4000px+ and 3-8MB).
+const MAX_IMAGE_DIM = 2000
+const WEBP_QUALITY = 0.82
+// Only still raster photos get re-encoded. GIFs are skipped so animations
+// keep playing, SVGs stay vector, and non-images (e.g. CV PDFs, which also
+// go through uploadImage) pass through untouched.
+const COMPRESSIBLE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+// Resizes and re-encodes an image blob as WebP in the browser before upload.
+// Falls back to the original blob whenever compression isn't possible
+// (unsupported format, decode failure) or wouldn't actually make it smaller.
+async function compressImage(blob) {
+  if (!COMPRESSIBLE_TYPES.includes(blob.type)) return blob
+  try {
+    const bitmap = await createImageBitmap(blob)
+    const scale = Math.min(1, MAX_IMAGE_DIM / Math.max(bitmap.width, bitmap.height))
+    const width = Math.round(bitmap.width * scale)
+    const height = Math.round(bitmap.height * scale)
+
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height)
+    bitmap.close?.()
+
+    const out = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY))
+    // Some browsers silently fall back to PNG when WebP encoding isn't
+    // supported, which can end up larger — keep whichever is smaller.
+    if (!out || out.size >= blob.size) return blob
+    return out
+  } catch {
+    return blob
+  }
+}
+
 export function UserProvider({ children }) {
   const [user, setUser]                       = useState(null)
   const [savedBriefs, setSavedBriefs]         = useState([])
@@ -66,18 +103,24 @@ export function UserProvider({ children }) {
 
   // Reads a base64 data URL (or passes through an existing URL) and uploads
   // it to the portfolio-images storage bucket under the user's own folder.
+  // Photos are resized/re-encoded first (see compressImage) so a 5MB phone
+  // shot lands as a few hundred KB instead of being served full-size in
+  // every grid.
   async function uploadImage(source) {
     if (!source || !user) return null
     if (!source.startsWith('data:')) return source // already a URL
 
     try {
       const res = await fetch(source)
-      const blob = await res.blob()
+      const blob = await compressImage(await res.blob())
       const ext = (blob.type.split('/')[1] || 'png').split('+')[0]
       const path = `${user.id}/${crypto.randomUUID()}.${ext}`
       const { error: uploadError } = await supabase.storage
         .from('portfolio-images')
-        .upload(path, blob, { contentType: blob.type })
+        // Every upload gets a fresh UUID path and is never overwritten, so
+        // browsers/CDN can safely cache it for a year instead of re-fetching
+        // hourly (Supabase's default).
+        .upload(path, blob, { contentType: blob.type, cacheControl: '31536000' })
       if (uploadError) {
         console.error('Image upload failed:', uploadError)
         return null
