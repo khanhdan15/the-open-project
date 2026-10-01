@@ -50,7 +50,7 @@ function SectionSep({ label, optional }) {
   )
 }
 
-const MAX_IMAGES = 5
+const MAX_IMAGES = 10
 
 function readAsBase64(file) {
   return new Promise((resolve) => {

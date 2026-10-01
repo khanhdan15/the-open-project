@@ -9,6 +9,80 @@ const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helveti
 const SERIF = '"BIZ UDMincho", serif'
 const MONO = 'ui-monospace, "SF Mono", Consolas, monospace'
 
+// Only http(s) links ever become clickable — a bare "www." gets https://
+// added, and anything else (javascript:, data:, etc.) is left as plain text.
+function toSafeUrl(raw) {
+  const value = (raw || '').trim()
+  if (!value) return null
+  const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`
+  try {
+    const url = new URL(withProtocol)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null
+  } catch {
+    return null
+  }
+}
+
+const URL_PATTERN = /((?:https?:\/\/|www\.)[^\s]+)/gi
+
+// Renders free-text notes with any URLs turned into real links, and long
+// unbroken strings (like URLs) allowed to wrap instead of running out of
+// the column and getting cut off.
+function LinkifiedText({ text }) {
+  const parts = text.split(URL_PATTERN)
+  return parts.map((part, i) => {
+    if (i % 2 === 1) {
+      const href = toSafeUrl(part)
+      if (href) {
+        return (
+          <a key={i} href={href} target="_blank" rel="noopener noreferrer" style={{ color: '#0A0A0A', textDecoration: 'underline' }}>
+            {part}
+          </a>
+        )
+      }
+    }
+    return <span key={i}>{part}</span>
+  })
+}
+
+// Project details entered in the Add/Edit Project form (client, role,
+// tools, etc.) — previously saved but never shown anywhere on the page.
+function ProjectMeta({ meta }) {
+  if (!meta) return null
+  const rows = [
+    ['Client', meta.client],
+    ['Role', meta.role],
+    ['Tools', meta.tools],
+    ['Collaborators', meta.collaborators],
+    ['Year', meta.year],
+  ].filter(([, value]) => value && String(value).trim())
+  const linkHref = toSafeUrl(meta.projectLink)
+
+  if (!rows.length && !linkHref) return null
+
+  const labelStyle = { fontFamily: HN, fontSize: '11px', color: '#999', fontStyle: 'italic' }
+  const valueStyle = { fontFamily: HN, fontSize: '13px', color: '#0A0A0A', lineHeight: 1.6, overflowWrap: 'anywhere' }
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '6px 16px', alignItems: 'baseline' }}>
+      {rows.map(([label, value]) => (
+        <div key={label} style={{ display: 'contents' }}>
+          <div style={labelStyle}>{label.toLowerCase()}:</div>
+          <div style={valueStyle}>{value}</div>
+        </div>
+      ))}
+      {linkHref && (
+        <>
+          <div style={labelStyle}>link:</div>
+          <a href={linkHref} target="_blank" rel="noopener noreferrer" style={{ ...valueStyle, textDecoration: 'underline' }}>
+            {meta.projectLink.trim()} ↗
+          </a>
+        </>
+      )}
+    </div>
+  )
+}
+
 function BriefGrid({ brief, color }) {
   const cellStyle = { background: color, padding: '12px 14px' }
   const labelStyle = {
@@ -132,7 +206,7 @@ export default function ProjectDetail() {
     )
   }
 
-  const { brief, title, images, image, note, folderColor } = project
+  const { brief, title, images, image, note, folderColor, meta } = project
   const categoryColor = folderColor || brief?.folder_color || '#60DDE6'
   const allImages = images?.length ? images : image ? [image] : []
   const displayTitle = title || brief?.title || 'Untitled Project'
@@ -237,15 +311,23 @@ export default function ProjectDetail() {
         flex: 1,
       }}>
 
-        {/* LEFT COLUMN */}
-        <div>
+        {/* LEFT COLUMN — minWidth 0 stops a long unbroken string (e.g. a
+            pasted URL) from stretching the grid column past the page. */}
+        <div style={{ minWidth: 0 }}>
           {/* Notes */}
           <div style={{ fontFamily: HN, fontSize: '11px', color: '#999', fontStyle: 'italic', marginBottom: '8px' }}>
             notes:
           </div>
-          <div style={{ fontFamily: SERIF, fontSize: '16px', lineHeight: 1.8, color: '#0A0A0A' }}>
-            {note || '—'}
+          <div style={{ fontFamily: SERIF, fontSize: '16px', lineHeight: 1.8, color: '#0A0A0A', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+            {note ? <LinkifiedText text={note} /> : '—'}
           </div>
+
+          {meta && (meta.client || meta.role || meta.tools || meta.collaborators || meta.year || meta.projectLink) && (
+            <>
+              <div style={{ margin: '24px 0', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
+              <ProjectMeta meta={meta} />
+            </>
+          )}
 
           {/* Rule */}
           <div style={{ margin: '24px 0', borderTop: '1px solid rgba(0,0,0,0.1)' }} />
