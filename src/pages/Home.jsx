@@ -44,11 +44,11 @@ function ProjectResultCard({ project, onClick }) {
   return (
     <div className="card-pop" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
-        className="spotlight-card"
+        className={`spotlight-card${thumbnail ? ' img-placeholder' : ''}`}
         onMouseMove={handleSpotlightMove}
         style={{
           position: 'relative',
-          background: thumbnail ? '#EDEDED' : color,
+          background: thumbnail ? undefined : color,
           aspectRatio: '3 / 4', overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}

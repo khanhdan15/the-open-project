@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import AddProjectModal from '../components/AddProjectModal'
 import ImageViewer from '../components/ImageViewer'
-import Thumb from '../components/Thumb'
+import Thumb, { RevealImg } from '../components/Thumb'
+import { thumbUrl } from '../lib/images'
 import { useUser } from '../context/UserContext'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -393,42 +394,70 @@ export default function ProjectDetail() {
             </div>
           ) : (
             <div>
-              {/* Primary image */}
-              <img
-                src={allImages[0]}
-                alt={displayTitle}
-                decoding="async"
-                fetchPriority="high"
+              {/* Primary image — "blur-up": the small grid thumbnail (usually
+                  already cached from the portfolio page) shows first, blurred,
+                  and the full-size image fades in sharp on top once loaded. */}
+              <div
+                className="img-placeholder"
                 onClick={() => setViewerIndex(0)}
                 style={{
+                  position: 'relative',
+                  overflow: 'hidden',
                   cursor: 'zoom-in',
-                  width: '100%',
-                  display: 'block',
                   borderRadius: '4px',
                   border: '1px solid rgba(0,0,0,0.08)',
-                  objectFit: 'cover',
                   marginBottom: allImages.length > 1 ? '8px' : '0',
+                  minHeight: '200px',
                 }}
-              />
+              >
+                {thumbUrl(allImages[0]) !== allImages[0] ? (
+                  <>
+                    <RevealImg
+                      src={thumbUrl(allImages[0])}
+                      fallbackSrc={allImages[0]}
+                      alt=""
+                      aria-hidden="true"
+                      className="img-preview"
+                      style={{ width: '100%', display: 'block' }}
+                    />
+                    <RevealImg
+                      src={allImages[0]}
+                      alt={displayTitle}
+                      fetchPriority="high"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                  </>
+                ) : (
+                  <RevealImg
+                    src={allImages[0]}
+                    alt={displayTitle}
+                    fetchPriority="high"
+                    style={{ width: '100%', display: 'block' }}
+                  />
+                )}
+              </div>
               {/* Additional images grid */}
               {allImages.length > 1 && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {allImages.slice(1).map((img, i) => (
-                    <Thumb
+                    <div
                       key={i}
-                      src={img}
-                      alt={`${displayTitle} ${i + 2}`}
+                      className="img-placeholder"
                       onClick={() => setViewerIndex(i + 1)}
                       style={{
                         cursor: 'zoom-in',
-                        width: '100%',
                         aspectRatio: '1 / 1',
-                        objectFit: 'cover',
-                        display: 'block',
+                        overflow: 'hidden',
                         borderRadius: '4px',
                         border: '1px solid rgba(0,0,0,0.08)',
                       }}
-                    />
+                    >
+                      <Thumb
+                        src={img}
+                        alt={`${displayTitle} ${i + 2}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

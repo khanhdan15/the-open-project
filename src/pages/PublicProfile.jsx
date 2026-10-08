@@ -54,11 +54,11 @@ function ProjectCard({ project, index, onClick }) {
         No {index + 1} - {displayTitle}
       </div>
       <div
-        className="spotlight-card"
+        className={`spotlight-card${thumbnail ? ' img-placeholder' : ''}`}
         onMouseMove={handleSpotlightMove}
         style={{
           position: 'relative',
-          background: thumbnail ? '#EDEDED' : color,
+          background: thumbnail ? undefined : color,
           aspectRatio: '3 / 4', overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}
