@@ -7,6 +7,7 @@ import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
+import { snapCardToImage } from '../lib/images'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -66,7 +67,7 @@ function ProjectCard({ project, index, onClick }) {
         }}
       >
         {thumbnail && (
-          <Thumb src={thumbnail} alt={displayTitle} style={{ display: 'block' }} />
+          <Thumb src={thumbnail} alt={displayTitle} onLoaded={snapCardToImage} style={{ display: 'block' }} />
         )}
         {isHighlight && (
           <span

@@ -1078,24 +1078,20 @@ button { cursor: pointer; }
   transform: scale(1.04);
 }
 
-/* Masonry project cards (see components/Masonry.jsx): the image sets the
-   card's height from its own shape. While it's still loading it fills a
-   3:4 shimmer placeholder (so the grid doesn't collapse and lazy-loading
-   can see it); once loaded, the card takes the image's natural height. */
+/* Masonry project cards (see components/Masonry.jsx). Each card is one of
+   three shapes only — portrait 3:4 (the default, also used as the loading
+   placeholder), square 1:1 or landscape 4:3 — picked to match the image
+   once it loads (snapCardToImage in lib/images.js). The image fills the card,
+   so at most a sliver is trimmed when it's not exactly one of those ratios. */
 .masonry-media {
   display: block;
-}
-.masonry-media:has(.img-reveal:not(.is-loaded)) {
   aspect-ratio: 3 / 4;
+  transition: aspect-ratio 0.25s ease;
 }
-.masonry-media .img-reveal:not(.is-loaded) {
+.masonry-media .img-reveal {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-.masonry-media .img-reveal.is-loaded {
-  position: static;
-  width: 100%;
-  height: auto;
+  object-fit: cover;
 }

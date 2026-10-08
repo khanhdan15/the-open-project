@@ -11,15 +11,20 @@ function markLoaded(img) {
 // from a blur — instead of painting in jagged strips top-to-bottom while it
 // loads. If `fallbackSrc` is given and `src` fails (e.g. a thumbnail that
 // doesn't exist yet), it swaps to the fallback.
-export function RevealImg({ src, fallbackSrc, alt = '', className = '', ...props }) {
+// `onLoaded(img)` runs once the image is ready (e.g. to size its card).
+export function RevealImg({ src, fallbackSrc, alt = '', className = '', onLoaded, ...props }) {
+  const done = (img) => {
+    markLoaded(img)
+    if (onLoaded) onLoaded(img)
+  }
   return (
     <img
       src={src}
       alt={alt}
       decoding="async"
       className={`img-reveal${className ? ` ${className}` : ''}`}
-      ref={(img) => { if (img && img.complete && img.naturalWidth) markLoaded(img) }}
-      onLoad={(e) => markLoaded(e.currentTarget)}
+      ref={(img) => { if (img && img.complete && img.naturalWidth) done(img) }}
+      onLoad={(e) => done(e.currentTarget)}
       onError={(e) => {
         const img = e.currentTarget
         if (fallbackSrc && fallbackSrc !== src && img.dataset.fallback !== '1') {

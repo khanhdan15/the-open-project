@@ -7,6 +7,7 @@ import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
+import { snapCardToImage } from '../lib/images'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -61,6 +62,7 @@ function ProjectResultCard({ project, onClick, natural = false }) {
             src={thumbnail}
             alt={displayTitle}
             style={natural ? { display: 'block' } : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            onLoaded={natural ? snapCardToImage : undefined}
           />
         )}
         {project.isHighlight && (

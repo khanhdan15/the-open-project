@@ -65,3 +65,31 @@ export function thumbUrl(url) {
   if (!path || !/\.webp$/i.test(path) || isThumbPath(path)) return url
   return url.replace(/\.webp(\?.*)?$/i, '_thumb.webp$1')
 }
+
+// The only card shapes used in project grids, so the masonry layout stays
+// tidy: portrait 3:4, square 1:1, landscape 4:3.
+const CARD_RATIOS = [
+  { value: 3 / 4, css: '3 / 4' },
+  { value: 1, css: '1 / 1' },
+  { value: 4 / 3, css: '4 / 3' },
+]
+
+// Picks whichever allowed card shape is closest to the image's own
+// proportions (compared on a log scale, so "twice as wide" and "twice as
+// tall" count as equally far from square).
+export function nearestCardRatio(width, height) {
+  if (!width || !height) return CARD_RATIOS[0].css
+  const r = Math.log(width / height)
+  let best = CARD_RATIOS[0]
+  for (const option of CARD_RATIOS) {
+    if (Math.abs(Math.log(option.value) - r) < Math.abs(Math.log(best.value) - r)) best = option
+  }
+  return best.css
+}
+
+// Once a grid image has loaded, sizes its card to the nearest allowed shape.
+export function snapCardToImage(img) {
+  if (img?.parentElement && img.naturalWidth) {
+    img.parentElement.style.aspectRatio = nearestCardRatio(img.naturalWidth, img.naturalHeight)
+  }
+}
