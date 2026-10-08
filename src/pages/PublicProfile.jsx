@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
+import Masonry from '../components/Masonry'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -54,17 +55,18 @@ function ProjectCard({ project, index, onClick }) {
         No {index + 1} - {displayTitle}
       </div>
       <div
-        className={`spotlight-card${thumbnail ? ' img-placeholder' : ''}`}
+        className={`spotlight-card${thumbnail ? ' img-placeholder masonry-media' : ''}`}
         onMouseMove={handleSpotlightMove}
         style={{
           position: 'relative',
           background: thumbnail ? undefined : color,
-          aspectRatio: '3 / 4', overflow: 'hidden',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          // Natural image shape (masonry) — see .masonry-media in index.css.
+          // Cards with no image keep a 3:4 colour block.
+          aspectRatio: thumbnail ? undefined : '3 / 4', overflow: 'hidden',
         }}
       >
         {thumbnail && (
-          <Thumb src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <Thumb src={thumbnail} alt={displayTitle} style={{ display: 'block' }} />
         )}
         {isHighlight && (
           <span
@@ -250,7 +252,7 @@ export default function PublicProfile() {
           {projects.length === 0 ? (
             <div style={{ fontFamily: HN, fontSize: '12px', color: '#bbb' }}>No public projects yet.</div>
           ) : (
-            <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 16px' }}>
+            <Masonry columns={4} mobileColumns={2}>
               {projects.map((project, i) => (
                 <ProjectCard
                   key={i}
@@ -259,7 +261,7 @@ export default function PublicProfile() {
                   onClick={() => navigate(`/project/${i}`, { state: { project, readOnly: true, profileSlug: slug, ownerName: profile?.name } })}
                 />
               ))}
-            </div>
+            </Masonry>
           )}
         </div>
       )}

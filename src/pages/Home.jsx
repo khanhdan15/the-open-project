@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase'
 import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
+import Masonry from '../components/Masonry'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -34,7 +35,9 @@ async function attachOwners(rows) {
   return rows.map((r) => ({ ...rowToProject(r), owner: ownerMap[r.user_id] || null }))
 }
 
-function ProjectResultCard({ project, onClick }) {
+// `natural` = keep the image's own shape (masonry search results). The
+// two-row "recent community work" strip stays a uniform cropped 3:4.
+function ProjectResultCard({ project, onClick, natural = false }) {
   const { brief, folderColor, coverImage, images, image, title, discipline, owner } = project
   const folderName = discipline || brief?.folder || 'design'
   const color = folderColor || brief?.folder_color || disciplineColor(folderName)
@@ -44,17 +47,21 @@ function ProjectResultCard({ project, onClick }) {
   return (
     <div className="card-pop" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div
-        className={`spotlight-card${thumbnail ? ' img-placeholder' : ''}`}
+        className={`spotlight-card${thumbnail ? ' img-placeholder' : ''}${thumbnail && natural ? ' masonry-media' : ''}`}
         onMouseMove={handleSpotlightMove}
         style={{
           position: 'relative',
           background: thumbnail ? undefined : color,
-          aspectRatio: '3 / 4', overflow: 'hidden',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          aspectRatio: thumbnail && natural ? undefined : '3 / 4', overflow: 'hidden',
+          display: natural ? 'block' : 'flex', alignItems: 'center', justifyContent: 'center',
         }}
       >
         {thumbnail && (
-          <Thumb src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <Thumb
+            src={thumbnail}
+            alt={displayTitle}
+            style={natural ? { display: 'block' } : { width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
         )}
         {project.isHighlight && (
           <span style={{
@@ -287,11 +294,11 @@ export default function Home() {
               {projects.length > 0 && (
                 <div>
                   <div style={sectionLabelStyle}>Projects</div>
-                  <div className="responsive-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px 16px' }}>
+                  <Masonry columns={4} mobileColumns={2}>
                     {projects.map((project) => (
-                      <ProjectResultCard key={project.id} project={project} onClick={() => goToProject(project)} />
+                      <ProjectResultCard key={project.id} project={project} natural onClick={() => goToProject(project)} />
                     ))}
-                  </div>
+                  </Masonry>
                 </div>
               )}
             </div>
