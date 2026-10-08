@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import AddProjectModal from '../components/AddProjectModal'
 import ImageViewer from '../components/ImageViewer'
+import Thumb from '../components/Thumb'
 import { useUser } from '../context/UserContext'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -397,6 +398,7 @@ export default function ProjectDetail() {
                 src={allImages[0]}
                 alt={displayTitle}
                 decoding="async"
+                fetchPriority="high"
                 onClick={() => setViewerIndex(0)}
                 style={{
                   cursor: 'zoom-in',
@@ -412,12 +414,10 @@ export default function ProjectDetail() {
               {allImages.length > 1 && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   {allImages.slice(1).map((img, i) => (
-                    <img
+                    <Thumb
                       key={i}
                       src={img}
                       alt={`${displayTitle} ${i + 2}`}
-                      loading="lazy"
-                      decoding="async"
                       onClick={() => setViewerIndex(i + 1)}
                       style={{
                         cursor: 'zoom-in',

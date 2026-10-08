@@ -5,6 +5,7 @@ import ScrollCue from '../components/ScrollCue'
 import { supabase } from '../lib/supabase'
 import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
+import Thumb from '../components/Thumb'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -53,7 +54,7 @@ function ProjectResultCard({ project, onClick }) {
         }}
       >
         {thumbnail && (
-          <img src={thumbnail} alt={displayTitle} loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          <Thumb src={thumbnail} alt={displayTitle} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         )}
         {project.isHighlight && (
           <span style={{

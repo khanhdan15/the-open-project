@@ -1,42 +1,116 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { compressImage, MAX_IMAGE_DIM, THUMB_DIM, storagePathFromUrl, isThumbPath, thumbUrl } from '../lib/images'
 
 const UserContext = createContext(null)
 
-// Longest side, in px, that uploaded photos are scaled down to. Plenty for a
-// full-width project page on a retina screen, far smaller than a raw phone
-// photo (often 4000px+ and 3-8MB).
-const MAX_IMAGE_DIM = 2000
-const WEBP_QUALITY = 0.82
-// Only still raster photos get re-encoded. GIFs are skipped so animations
-// keep playing, SVGs stay vector, and non-images (e.g. CV PDFs, which also
-// go through uploadImage) pass through untouched.
-const COMPRESSIBLE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const BUCKET = 'portfolio-images'
+// Every upload gets a fresh UUID path and is never overwritten, so browsers
+// and the CDN can safely cache it for a year instead of re-fetching hourly
+// (Supabase's default).
+const CACHE_ONE_YEAR = '31536000'
 
-// Resizes and re-encodes an image blob as WebP in the browser before upload.
-// Falls back to the original blob whenever compression isn't possible
-// (unsupported format, decode failure) or wouldn't actually make it smaller.
-async function compressImage(blob) {
-  if (!COMPRESSIBLE_TYPES.includes(blob.type)) return blob
-  try {
-    const bitmap = await createImageBitmap(blob)
-    const scale = Math.min(1, MAX_IMAGE_DIM / Math.max(bitmap.width, bitmap.height))
-    const width = Math.round(bitmap.width * scale)
-    const height = Math.round(bitmap.height * scale)
+async function putObject(path, blob) {
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { contentType: blob.type, cacheControl: CACHE_ONE_YEAR })
+  if (error) throw error
+  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+}
 
-    const canvas = document.createElement('canvas')
-    canvas.width = width
-    canvas.height = height
-    canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height)
-    bitmap.close?.()
+// Uploads an image for a user: a compressed full-size version (shown on the
+// project page) plus a small "<id>_thumb.webp" next to it for grids — see
+// thumbUrl() in lib/images.js. Non-compressible files (GIFs, PDFs) are
+// uploaded as-is with no thumbnail. Returns the full-size URL.
+async function uploadImageBlob(userId, original) {
+  const full = await compressImage(original, MAX_IMAGE_DIM)
+  const ext = (full.type.split('/')[1] || 'png').split('+')[0]
+  const id = crypto.randomUUID()
+  const url = await putObject(`${userId}/${id}.${ext}`, full)
+  if (full.type === 'image/webp') {
+    try {
+      const thumb = await compressImage(original, THUMB_DIM)
+      if (thumb.type === 'image/webp') await putObject(`${userId}/${id}_thumb.webp`, thumb)
+    } catch (e) {
+      // Not fatal — grids fall back to the full image when a thumb is missing.
+      console.warn('Thumbnail upload failed:', e)
+    }
+  }
+  return url
+}
 
-    const out = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', WEBP_QUALITY))
-    // Some browsers silently fall back to PNG when WebP encoding isn't
-    // supported, which can end up larger — keep whichever is smaller.
-    if (!out || out.size >= blob.size) return blob
-    return out
-  } catch {
-    return blob
+// ─── One-time cleanup of older, full-size uploads ──────────────────────────
+// Images uploaded before compression existed are still multi-MB originals,
+// and the WebP ones uploaded since have no grid thumbnail yet. When an owner
+// is signed in, this quietly re-encodes their own old images in the
+// background (compressed copy + thumbnail) and points the project at the new
+// files. Original files are left in storage untouched — nothing is deleted.
+
+const optimizedUsers = new Set()
+
+async function optimizeStoredImage(userId, url) {
+  const path = storagePathFromUrl(url)
+  // Only touch files in this user's own storage folder.
+  if (!path || !path.startsWith(`${userId}/`) || isThumbPath(path)) return url
+
+  if (/\.webp$/i.test(path)) {
+    // Already compressed — just make sure its thumbnail exists.
+    const head = await fetch(thumbUrl(url), { method: 'HEAD' })
+    if (head.ok) return url
+    const res = await fetch(url)
+    if (!res.ok) return url
+    const small = await compressImage(await res.blob(), THUMB_DIM)
+    if (small.type === 'image/webp') await putObject(path.replace(/\.webp$/i, '_thumb.webp'), small)
+    return url
+  }
+
+  const res = await fetch(url)
+  if (!res.ok) return url
+  const blob = await res.blob()
+  const full = await compressImage(blob, MAX_IMAGE_DIM)
+  if (full === blob) return url // GIF, PDF, or already as small as it gets
+  return uploadImageBlob(userId, blob)
+}
+
+async function optimizeProjectImages(userId, rows, onUpdated) {
+  if (optimizedUsers.has(userId)) return
+  optimizedUsers.add(userId)
+  // Let the page's own images load first instead of competing with them.
+  await new Promise((resolve) => setTimeout(resolve, 4000))
+
+  const done = new Map()
+  const fix = async (url) => {
+    if (!url) return url
+    if (!done.has(url)) done.set(url, await optimizeStoredImage(userId, url).catch(() => url))
+    return done.get(url)
+  }
+
+  for (const row of rows) {
+    try {
+      const oldImages = row.images || []
+      const newCover = await fix(row.image_url)
+      const newImages = []
+      for (const url of oldImages) newImages.push(await fix(url))
+      const changed = newCover !== row.image_url || newImages.some((u, i) => u !== oldImages[i])
+      if (!changed) continue
+
+      // Skip if the project was edited while this was running, so we never
+      // overwrite newer changes with an older image list.
+      const { data: current } = await supabase
+        .from('submitted_projects').select('image_url,images').eq('id', row.id).single()
+      if (!current || current.image_url !== row.image_url
+        || JSON.stringify(current.images || []) !== JSON.stringify(oldImages)) continue
+
+      const { data, error } = await supabase
+        .from('submitted_projects')
+        .update({ image_url: newCover, images: newImages })
+        .eq('id', row.id)
+        .select()
+        .single()
+      if (!error && data) onUpdated(data)
+    } catch (e) {
+      console.warn('Skipped optimizing images for project', row.id, e)
+    }
   }
 }
 
@@ -112,25 +186,23 @@ export function UserProvider({ children }) {
 
     try {
       const res = await fetch(source)
-      const blob = await compressImage(await res.blob())
-      const ext = (blob.type.split('/')[1] || 'png').split('+')[0]
-      const path = `${user.id}/${crypto.randomUUID()}.${ext}`
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-images')
-        // Every upload gets a fresh UUID path and is never overwritten, so
-        // browsers/CDN can safely cache it for a year instead of re-fetching
-        // hourly (Supabase's default).
-        .upload(path, blob, { contentType: blob.type, cacheControl: '31536000' })
-      if (uploadError) {
-        console.error('Image upload failed:', uploadError)
-        return null
-      }
-      const { data } = supabase.storage.from('portfolio-images').getPublicUrl(path)
-      return data.publicUrl
+      return await uploadImageBlob(user.id, await res.blob())
     } catch (e) {
       console.error('Image upload failed:', e)
       return null
     }
+  }
+
+  // Uploads a project's images. The cover is normally the same file as
+  // images[0], so it's uploaded once and reused instead of stored twice —
+  // which also lets the browser reuse the cached file between pages.
+  async function uploadProjectImages(project) {
+    const sources = project.images || []
+    const extraUrls = await Promise.all(sources.map(uploadImage))
+    const coverSource = project.coverImage || project.image
+    const coverIndex = sources.indexOf(coverSource)
+    const coverUrl = coverIndex >= 0 ? extraUrls[coverIndex] : await uploadImage(coverSource)
+    return { coverUrl, extraUrls }
   }
 
   // Fetch from Supabase
@@ -149,7 +221,13 @@ export function UserProvider({ children }) {
       .select('*')
       .eq('user_id', userId)
       .order('submitted_at', { ascending: false })
-    if (data) setSubmittedProjects(data.map(rowToProject))
+    if (data) {
+      setSubmittedProjects(data.map(rowToProject))
+      // Fire-and-forget: shrink this owner's older full-size uploads.
+      optimizeProjectImages(userId, data, (row) => {
+        setSubmittedProjects((prev) => prev.map((p) => (p.id === row.id ? rowToProject(row) : p)))
+      })
+    }
   }
 
   // Auth actions
@@ -293,10 +371,7 @@ export function UserProvider({ children }) {
   async function addSubmittedProject(project) {
     if (!user) return
 
-    const [coverUrl, extraUrls] = await Promise.all([
-      uploadImage(project.coverImage || project.image),
-      Promise.all((project.images || []).map(uploadImage)),
-    ])
+    const { coverUrl, extraUrls } = await uploadProjectImages(project)
 
     const { data, error } = await supabase
       .from('submitted_projects')
@@ -325,10 +400,7 @@ export function UserProvider({ children }) {
   async function updateSubmittedProject(projectId, project) {
     if (!user || !projectId) return
 
-    const [coverUrl, extraUrls] = await Promise.all([
-      uploadImage(project.coverImage || project.image),
-      Promise.all((project.images || []).map(uploadImage)),
-    ])
+    const { coverUrl, extraUrls } = await uploadProjectImages(project)
 
     const { data, error } = await supabase
       .from('submitted_projects')
