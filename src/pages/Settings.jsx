@@ -179,6 +179,19 @@ export default function Settings() {
         >
           {saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save Changes'}
         </button>
+
+        <button
+          onClick={() => navigate('/reset-password')}
+          style={{
+            width: '100%', marginTop: '10px',
+            background: 'none', color: '#0A0A0A',
+            fontFamily: HN, fontSize: '11px', textTransform: 'uppercase',
+            letterSpacing: '0.1em', padding: '14px',
+            border: '1px solid rgba(0,0,0,0.2)', borderRadius: 0, cursor: 'pointer',
+          }}
+        >
+          Change password
+        </button>
       </div>
     </div>
   )

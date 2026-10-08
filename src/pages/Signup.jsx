@@ -1,11 +1,17 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import { supabase } from '../lib/supabase'
 
 export default function Signup() {
   const { signUp, signIn } = useUser()
   const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(false)
+  const [searchParams] = useSearchParams()
+  // "Forgot password" view — opened from the sign-in form, or directly via
+  // /signup?forgot=1 (the link on an expired reset page).
+  const [forgot, setForgot] = useState(() => searchParams.get('forgot') === '1')
+  const [resetSent, setResetSent] = useState(false)
+  const [isLogin, setIsLogin] = useState(() => searchParams.get('forgot') === '1')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [form, setForm] = useState({
@@ -16,6 +22,19 @@ export default function Signup() {
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+
+  const handleSendReset = async (e) => {
+    e.preventDefault()
+    setError(null)
+    if (!form.email.trim()) { setError('Enter the email you signed up with'); return }
+    setLoading(true)
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(form.email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    setLoading(false)
+    if (resetError) { setError(resetError.message); return }
+    setResetSent(true)
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -34,6 +53,57 @@ export default function Signup() {
 
     setLoading(false)
     navigate('/portfolio')
+  }
+
+  if (forgot) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="w-full max-w-sm">
+          <h1 className="font-serif text-3xl mb-2 text-center">Reset password</h1>
+          {resetSent ? (
+            <p className="text-center text-sm text-gray-500 mt-6 mb-8">
+              If an account exists for {form.email.trim()}, a reset link is on its way. Check your inbox (and spam folder),
+              then follow the link to choose a new password.
+            </p>
+          ) : (
+            <>
+              <p className="text-center text-sm text-gray-400 mb-8">
+                Enter your account email and we'll send you a link to set a new password.
+              </p>
+              <form onSubmit={handleSendReset} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs uppercase tracking-widest text-gray-400">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    className="border border-gray-200 rounded px-4 py-3 text-sm outline-none focus:border-black transition-colors"
+                  />
+                </div>
+                {error && <p className="text-red-500 text-sm">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-black text-white py-3 rounded text-sm uppercase tracking-widest hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  {loading ? 'Please wait...' : 'Send reset link'}
+                </button>
+              </form>
+            </>
+          )}
+          <p className="text-center text-sm text-gray-400 mt-6">
+            <button
+              onClick={() => { setForgot(false); setResetSent(false); setIsLogin(true); setError(null) }}
+              className="text-black underline"
+            >
+              Back to sign in
+            </button>
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -82,6 +152,15 @@ export default function Signup() {
               placeholder="••••••••"
               className="border border-gray-200 rounded px-4 py-3 text-sm outline-none focus:border-black transition-colors"
             />
+            {isLogin && (
+              <button
+                type="button"
+                onClick={() => { setForgot(true); setError(null) }}
+                className="self-end text-xs text-gray-400 underline mt-1 hover:text-black"
+              >
+                Forgot password?
+              </button>
+            )}
           </div>
 
           {error && (
