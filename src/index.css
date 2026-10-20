@@ -1209,14 +1209,20 @@ button { cursor: pointer; }
 .hero-showcase.is-searching .ring-scene { opacity: 0; pointer-events: none; }
 .hero-showcase.is-searching .hero-title-wrap { top: 38%; }
 
-/* Phones: stacked — title, then a smaller ring, then search. */
+/* Phones: the title + ring fill the whole first screen; the search bar
+   (and the recent work below it) only come into view once you scroll.
+   Grid rows: title | ring (takes the rest of the screen) | search. The
+   search row's height is added on top of the screen height, so the first
+   two rows together are exactly one screen tall. */
 @media (max-width: 768px) {
   .hero-showcase {
+    --search-row: 96px;
     height: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 36px 0 28px;
+    min-height: calc(100svh - 52px + var(--search-row));
+    display: grid;
+    grid-template-rows: auto 1fr var(--search-row);
+    justify-items: center;
+    padding: 0;
   }
   .hero-center { display: contents; }
   .hero-title-wrap {
@@ -1224,19 +1230,35 @@ button { cursor: pointer; }
     top: auto;
     left: auto;
     transform: none;
-    order: 1;
+    grid-row: 1;
     width: calc(100% - 40px);
+    padding-top: 48px;
   }
   .ring-scene {
     position: relative;
     inset: auto;
-    order: 2;
+    grid-row: 2;
     width: 100%;
-    height: 300px;
-    margin: 8px 0 4px;
+    height: 100%;
+    min-height: 280px;
     perspective: 1400px;
   }
-  .ring { top: 50%; }
+  .ring { top: 48%; }
+  /* Small bouncing arrow at the bottom of the first screen: "scroll for
+     more". */
+  .ring-scene::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    width: 10px;
+    height: 10px;
+    border-right: 1.5px solid rgba(0, 0, 0, 0.45);
+    border-bottom: 1.5px solid rgba(0, 0, 0, 0.45);
+    transform: translateX(-50%) rotate(45deg);
+    animation: heroScrollHint 1.8s ease-in-out infinite;
+    pointer-events: none;
+  }
   /* Opened case: less lift on the smaller ring. */
   .ring.has-open .ring-card.is-open,
   .ring-card.is-open:hover {
@@ -1247,16 +1269,26 @@ button { cursor: pointer; }
      content below the hero. */
   .home-gutter,
   .home-scroll-cue { display: none !important; }
-  .home-main { padding: 28px 16px 48px !important; }
+  .home-main { padding: 12px 16px 48px !important; }
   .hero-showcase .hero-search {
     position: relative;
     left: auto;
     bottom: auto;
     transform: none;
-    order: 3;
+    grid-row: 3;
+    align-self: center;
   }
-  .hero-showcase.is-searching { height: auto; }
-  .hero-showcase.is-searching .ring-scene { height: 0; }
+  /* While searching: collapse the full-screen ring so results sit right
+     under the search bar. */
+  .hero-showcase.is-searching { min-height: 0; grid-template-rows: auto 0 var(--search-row); }
+  .hero-showcase.is-searching .ring-scene { min-height: 0; height: 0; overflow: hidden; }
+}
+@keyframes heroScrollHint {
+  0%, 100% { transform: translate(-50%, 0) rotate(45deg); opacity: 0.4; }
+  50%      { transform: translate(-50%, 6px) rotate(45deg); opacity: 0.9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-scene::after { animation: none; }
 }
 
 /* Hero headline — "good brief" is a moving multi-colour, clickable link to
