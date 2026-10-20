@@ -1095,3 +1095,302 @@ button { cursor: pointer; }
   height: 100%;
   object-fit: cover;
 }
+
+/* ─── Landing hero (HeroShowcase): turning 3D ring of project cases ──────
+   The headline floats in the middle of the ring, the search bar sits
+   below it. --R (ring radius) and --cw (case width) are set from JS to fit
+   the screen; the ring's rotation is also driven from JS. */
+.hero-showcase {
+  position: relative;
+  overflow: hidden;
+  height: clamp(720px, calc(100vh - 56px), 960px);
+  transition: height 0.4s ease;
+}
+.ring-scene {
+  position: absolute;
+  inset: 0;
+  perspective: 2400px;
+  perspective-origin: 50% 30%;
+  transition: opacity 0.35s ease;
+}
+.ring {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  transform-style: preserve-3d;
+  transform: rotateX(-30deg);
+}
+.ring-card {
+  position: absolute;
+  width: var(--cw);
+  height: calc(var(--cw) * 4 / 3);
+  left: calc(var(--cw) / -2);
+  top: calc(var(--cw) * -2 / 3);
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  transform: rotateY(var(--a)) translateZ(var(--R)) rotateY(90deg);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+}
+.ring-card .img-reveal {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Glossy case edge + highlight. */
+.ring-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+.ring-card:hover {
+  transform: rotateY(var(--a)) translateZ(var(--R)) rotateY(90deg) translateY(-40px);
+}
+/* Clicked: turned to the front, facing the viewer (undoing the ring's
+   tilt), brought forward and 30% bigger; the rest of the ring dims. */
+.ring.has-open .ring-card { opacity: 0.5; }
+.ring.has-open .ring-card.is-open,
+.ring-card.is-open:hover {
+  opacity: 1;
+  transform: rotateY(var(--a)) translateZ(calc(var(--R) + 70px)) rotateX(30deg) translateY(-90px) scale(1.3);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+/* Title in the middle of the ring, search below it. */
+.hero-center {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-title-wrap {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(580px, 72%);
+  text-align: center;
+  isolation: isolate;
+  pointer-events: auto;
+}
+/* Soft white blur behind the title, so it stays readable even if a case
+   passes close behind it. */
+.hero-title-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -30px -50px;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  filter: blur(30px);
+  pointer-events: none;
+}
+.hero-title-wrap .hero-title { font-size: clamp(30px, 3.5vw, 52px); }
+.hero-showcase .hero-search {
+  position: absolute;
+  left: 50%;
+  bottom: 30px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100% - 40px));
+  pointer-events: auto;
+}
+
+/* While searching, the ring steps aside and the hero shrinks so results
+   appear right under the search bar. */
+.hero-showcase.is-searching { height: 340px; }
+.hero-showcase.is-searching .ring-scene { opacity: 0; pointer-events: none; }
+.hero-showcase.is-searching .hero-title-wrap { top: 38%; }
+
+/* Phones: stacked — title, then a smaller ring, then search. */
+@media (max-width: 768px) {
+  .hero-showcase {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 0 28px;
+  }
+  .hero-center { display: contents; }
+  .hero-title-wrap {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    order: 1;
+    width: calc(100% - 40px);
+  }
+  .ring-scene {
+    position: relative;
+    inset: auto;
+    order: 2;
+    width: 100%;
+    height: 330px;
+    perspective: 1400px;
+  }
+  .ring { top: 50%; }
+  .hero-showcase .hero-search {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    order: 3;
+  }
+  .hero-showcase.is-searching { height: auto; }
+  .hero-showcase.is-searching .ring-scene { height: 0; }
+}
+
+/* Hero headline — "good brief" is a moving multi-colour, clickable link to
+   the brief generator (Home.jsx). */
+.hero-title {
+  font-family: "Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: clamp(34px, 4.4vw, 60px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #0A0A0A;
+  margin: 0;
+}
+.hero-title-link {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.08em 0 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.hero-title-link-text {
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.12em;
+  /* The gradient is clipped to this box, and italic letters lean outside
+     it (the tail of the "g" on the left, "f" on the right). Extra padding
+     gives them room to paint; the matching negative margin keeps the word
+     spacing exactly the same. */
+  display: inline-block;
+  padding: 0.08em 0.14em 0.16em 0.2em;
+  margin: -0.08em -0.08em -0.16em -0.2em;
+  background: linear-gradient(90deg, #D86077, #F2994A, #C9D83B, #4FB3E8, #8C6FE0, #D86077);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+  animation: heroTitleShimmer 7s linear infinite;
+}
+@keyframes heroTitleShimmer {
+  from { background-position: 0% 50%; }
+  to   { background-position: 300% 50%; }
+}
+
+/* Sparkles around "good brief", filled with the same moving colours and
+   twinkling at staggered times. The star shape is an SVG mask, so the
+   colour comes from the gradient background. */
+.hero-spark {
+  position: absolute;
+  aspect-ratio: 1 / 1;
+  pointer-events: none;
+  background: linear-gradient(90deg, #D86077, #F2994A, #C9D83B, #4FB3E8, #8C6FE0, #D86077);
+  background-size: 300% 100%;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12.6 6.2 17.8 11.4 24 12C17.8 12.6 12.6 17.8 12 24C11.4 17.8 6.2 12.6 0 12C6.2 11.4 11.4 6.2 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 0C12.6 6.2 17.8 11.4 24 12C17.8 12.6 12.6 17.8 12 24C11.4 17.8 6.2 12.6 0 12C6.2 11.4 11.4 6.2 12 0Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: heroTitleShimmer 7s linear infinite, heroSparkTwinkle 2.6s ease-in-out infinite;
+}
+/* A single sparkle tucked just above the end of "brief" (like the Gemini
+   wordmark), close enough to read as part of the words. */
+.hero-spark {
+  width: 0.4em;
+  top: -0.06em;
+  right: 0.02em;
+}
+@keyframes heroSparkTwinkle {
+  0%, 100% { transform: scale(0.85) rotate(0deg); opacity: 0.8; }
+  50%      { transform: scale(1.05) rotate(12deg); opacity: 1; }
+}
+.hero-title-link:hover .hero-spark { animation-duration: 7s, 1.2s; }
+/* Small hint that appears on hover so it's clear the words are a link. */
+.hero-title-hint {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 4px);
+  white-space: nowrap;
+  font-family: "Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-style: normal;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  background: #0A0A0A;
+  padding: 6px 12px;
+  border-radius: 999px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.hero-title-link:hover .hero-title-hint,
+.hero-title-link:focus-visible .hero-title-hint {
+  opacity: 1;
+  transform: translate(-50%, 10px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-title-link-text,
+  .hero-spark { animation: none; }
+}
+
+/* Custom cursor over "good brief": a pointing hand filled with the same
+   moving colours as the words. Only on devices with a real mouse; the
+   normal cursor is hidden there and this follows the pointer (--px/--py are
+   set on mousemove in Home.jsx). The fingertip sits on the pointer spot. */
+.hero-cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .hero-title-link { cursor: none; }
+  .hero-cursor {
+    display: block;
+    position: absolute;
+    left: var(--px, 50%);
+    top: var(--py, 50%);
+    width: 30px;
+    height: 30px;
+    transform: translate(-38%, -5%);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    background: linear-gradient(90deg, #D86077, #F2994A, #C9D83B, #4FB3E8, #8C6FE0, #D86077);
+    background-size: 300% 100%;
+    animation: heroTitleShimmer 7s linear infinite;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='7.2' y='1' width='3.8' height='13' rx='1.9'/%3E%3Crect x='10.4' y='7.2' width='3.6' height='8' rx='1.8'/%3E%3Crect x='13.4' y='8.2' width='3.4' height='7' rx='1.7'/%3E%3Crect x='16.2' y='9.4' width='3.2' height='6' rx='1.6'/%3E%3Crect x='7.2' y='11' width='12.2' height='9.4' rx='3.6'/%3E%3Crect x='3.4' y='10.6' width='3.6' height='8.6' rx='1.8' transform='rotate(-38 5.2 15)'/%3E%3Crect x='9.2' y='19' width='9' height='4' rx='1'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='7.2' y='1' width='3.8' height='13' rx='1.9'/%3E%3Crect x='10.4' y='7.2' width='3.6' height='8' rx='1.8'/%3E%3Crect x='13.4' y='8.2' width='3.4' height='7' rx='1.7'/%3E%3Crect x='16.2' y='9.4' width='3.2' height='6' rx='1.6'/%3E%3Crect x='7.2' y='11' width='12.2' height='9.4' rx='3.6'/%3E%3Crect x='3.4' y='10.6' width='3.6' height='8.6' rx='1.8' transform='rotate(-38 5.2 15)'/%3E%3Crect x='9.2' y='19' width='9' height='4' rx='1'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+  .hero-title-link:hover .hero-cursor { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-cursor { animation: none; }
+}
+
+/* Search bar glow: a soft, blurred pure-white halo, so the bar lifts off
+   whatever sits behind it. */
+.hero-search {
+  position: relative;
+  isolation: isolate;
+}
+.hero-search::before {
+  content: '';
+  position: absolute;
+  inset: -16px -26px;
+  z-index: -1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  filter: blur(18px);
+  pointer-events: none;
+}

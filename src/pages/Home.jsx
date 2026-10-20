@@ -7,6 +7,7 @@ import { handleSpotlightMove } from '../lib/spotlight'
 import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
+import HeroShowcase from '../components/HeroShowcase'
 import { snapCardToImage } from '../lib/images'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
@@ -221,57 +222,77 @@ export default function Home() {
     <div className="page-enter" style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Header />
 
+      {/* Hero — title inside a turning ring of projects, search below it */}
+      <HeroShowcase projects={recentProjects} onOpenProject={goToProject} searching={hasQuery}>
+        {/* Headline. "good brief" is the call to action: a moving multi-colour
+            gradient, clickable, takes visitors to the brief generator. */}
+        <div className="hero-title-wrap">
+        <h1 className="hero-title">
+          Every great project starts with a{' '}
+          <button
+            type="button"
+            className="hero-title-link"
+            onClick={() => navigate('/new')}
+            onMouseMove={(e) => {
+              // Position the custom colourful hand cursor (.hero-cursor) at the
+              // pointer, via CSS variables so moving never re-renders.
+              const r = e.currentTarget.getBoundingClientRect()
+              e.currentTarget.style.setProperty('--px', `${e.clientX - r.left}px`)
+              e.currentTarget.style.setProperty('--py', `${e.clientY - r.top}px`)
+            }}
+          >
+            <span className="hero-title-link-text">good brief</span>
+            <span className="hero-spark" aria-hidden="true" />
+            <span className="hero-cursor" aria-hidden="true" />
+            <span className="hero-title-hint" aria-hidden="true">Generate one →</span>
+          </button>
+          .
+        </h1>
+        </div>
+
+        {/* Search bar — rounded pill input + separate circular search button */}
+        <form
+          className="hero-search"
+          onSubmit={(e) => e.preventDefault()}
+          style={{ display: 'flex', alignItems: 'center', gap: '14px' }}
+        >
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Find community work…"
+            aria-label="Search projects and people"
+            style={{
+              flex: 1, minWidth: 0, boxSizing: 'border-box',
+              fontFamily: HN, fontSize: '15px', color: '#0A0A0A',
+              background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '999px',
+              padding: '13px 24px', outline: 'none',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+            }}
+          />
+          <button
+            type="submit"
+            aria-label="Search"
+            style={{
+              width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+              background: '#0A0A0A', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="#FFFFFF" strokeWidth="2.5" />
+              <path d="M20 20L16.5 16.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </button>
+        </form>
+
+      </HeroShowcase>
+
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Left gutter */}
         <div style={{ width: '90px', flexShrink: 0, borderRight: '1px solid rgba(0,0,0,0.15)', boxSizing: 'border-box' }} />
 
         {/* Main content */}
-        <div style={{ flex: 1, padding: '48px 40px 60px', boxSizing: 'border-box', minWidth: 0 }}>
-          {/* Hero + search — centered */}
-          <div style={{ textAlign: 'center' }}>
-            <div style={{
-              fontFamily: HN, fontSize: 'clamp(36px, 5vw, 60px)', fontWeight: 400,
-              textTransform: 'uppercase', color: '#0A0A0A', lineHeight: 1.1,
-            }}>
-              Brief Generator and Design Community
-            </div>
-            <div style={{ borderTop: '1px dashed rgba(0,0,0,0.3)', margin: '24px 0 32px', maxWidth: '720px', marginLeft: 'auto', marginRight: 'auto' }} />
-
-            {/* Search bar — rounded pill input + separate circular search button */}
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              style={{ display: 'flex', alignItems: 'center', gap: '14px', maxWidth: '560px', margin: '0 auto 48px' }}
-            >
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search…"
-                style={{
-                  flex: 1, minWidth: 0, boxSizing: 'border-box',
-                  fontFamily: HN, fontSize: '14px', color: '#0A0A0A',
-                  background: '#FFFFFF', border: '1px solid rgba(0,0,0,0.15)', borderRadius: '999px',
-                  padding: '8px 22px', outline: 'none',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                }}
-              />
-              <button
-                type="submit"
-                aria-label="Search"
-                style={{
-                  width: '26px', height: '26px', borderRadius: '50%', flexShrink: 0,
-                  background: '#0A0A0A', border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="#FFFFFF" strokeWidth="2.5" />
-                  <path d="M20 20L16.5 16.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
-                </svg>
-              </button>
-            </form>
-          </div>
-
-          <div style={{ borderTop: '1px dashed rgba(0,0,0,0.3)', margin: '0 0 32px' }} />
+        <div style={{ flex: 1, padding: '40px 40px 60px', boxSizing: 'border-box', minWidth: 0 }}>
 
           {hasQuery ? (
             <div>
