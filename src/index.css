@@ -1232,10 +1232,22 @@ button { cursor: pointer; }
     inset: auto;
     order: 2;
     width: 100%;
-    height: 330px;
+    height: 300px;
+    margin: 8px 0 4px;
     perspective: 1400px;
   }
   .ring { top: 50%; }
+  /* Opened case: less lift on the smaller ring. */
+  .ring.has-open .ring-card.is-open,
+  .ring-card.is-open:hover {
+    transform: rotateY(var(--a)) translateZ(calc(var(--R) + 40px)) rotateX(30deg) translateY(-40px) scale(1.3);
+  }
+  .ring-card:hover { transform: rotateY(var(--a)) translateZ(var(--R)) rotateY(90deg) translateY(-18px); }
+  /* Home on phones: no left column line or scroll indicator, full-width
+     content below the hero. */
+  .home-gutter,
+  .home-scroll-cue { display: none !important; }
+  .home-main { padding: 28px 16px 48px !important; }
   .hero-showcase .hero-search {
     position: relative;
     left: auto;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { RevealImg } from './Thumb'
 import { thumbUrl } from '../lib/images'
 
@@ -41,14 +41,24 @@ const SAMPLE_IMAGES = [
 ]
 const sampleUrl = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=280&h=373&q=70`
 
+// Fewer cases on phones, so the smaller ring stays airy instead of packed.
 const CASE_COUNT = 40
+const PHONE_CASE_COUNT = 24
+const PHONE_QUERY = '(max-width: 768px)'
+const subscribePhone = (callback) => {
+  const mql = window.matchMedia(PHONE_QUERY)
+  mql.addEventListener('change', callback)
+  return () => mql.removeEventListener('change', callback)
+}
+const getIsPhone = () => window.matchMedia(PHONE_QUERY).matches
 const SPIN_SPEED = 0.05 // degrees per frame (~ one turn every 2 minutes)
 const TILT = -30 // degrees; how far we look down onto the ring
 
 // Ring radius and case width for a given hero width (and phone or not).
 function ringSize(width, phone) {
   if (phone) {
-    return { radius: Math.min(220, width * 0.4), caseWidth: Math.max(48, Math.min(70, width * 0.15)) }
+    // Keep the whole ring (radius both sides + a case) inside the screen.
+    return { radius: Math.min(170, width * 0.34), caseWidth: Math.max(40, Math.min(56, width * 0.12)) }
   }
   return { radius: Math.min(540, width * 0.37), caseWidth: Math.max(66, Math.min(108, width * 0.068)) }
 }
@@ -61,9 +71,11 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
   const target = useRef(null)
   const hovering = useRef(false)
   const [openIndex, setOpenIndex] = useState(null)
+  const isPhone = useSyncExternalStore(subscribePhone, getIsPhone, () => false)
+  const caseCount = isPhone ? PHONE_CASE_COUNT : CASE_COUNT
 
   const real = projects.filter((p) => p.coverImage || p.image || p.images?.[0])
-  const cases = Array.from({ length: CASE_COUNT }, (_, i) => {
+  const cases = Array.from({ length: caseCount }, (_, i) => {
     const project = real[i]
     if (project) {
       const src = project.coverImage || project.image || project.images[0]
@@ -78,7 +90,7 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
     const scene = sceneRef.current
     if (!hero || !scene) return
     const resize = () => {
-      const phone = window.matchMedia('(max-width: 768px)').matches
+      const phone = getIsPhone()
       const { radius, caseWidth } = ringSize(hero.offsetWidth, phone)
       scene.style.setProperty('--R', `${radius}px`)
       scene.style.setProperty('--cw', `${caseWidth}px`)
@@ -119,7 +131,7 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
       return
     }
     // Turn the shortest way round so this case ends up at the front.
-    const angle = (i * 360) / CASE_COUNT
+    const angle = (i * 360) / caseCount
     const delta = ((((-angle - spin.current) % 360) + 540) % 360) - 180
     target.current = spin.current + delta
     setOpenIndex(i)
@@ -140,7 +152,7 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
             <div
               key={i}
               className={`ring-card img-placeholder${c.project ? ' is-project' : ''}${openIndex === i ? ' is-open' : ''}`}
-              style={{ '--a': `${(i * 360) / CASE_COUNT}deg` }}
+              style={{ '--a': `${(i * 360) / caseCount}deg` }}
               onClick={(e) => handleCaseClick(e, i)}
               role={c.project ? 'button' : undefined}
               tabIndex={c.project ? 0 : undefined}

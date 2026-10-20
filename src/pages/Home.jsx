@@ -289,10 +289,10 @@ export default function Home() {
 
       <div style={{ display: 'flex', flex: 1 }}>
         {/* Left gutter */}
-        <div style={{ width: '90px', flexShrink: 0, borderRight: '1px solid rgba(0,0,0,0.15)', boxSizing: 'border-box' }} />
+        <div className="home-gutter" style={{ width: '90px', flexShrink: 0, borderRight: '1px solid rgba(0,0,0,0.15)', boxSizing: 'border-box' }} />
 
         {/* Main content */}
-        <div style={{ flex: 1, padding: '40px 40px 60px', boxSizing: 'border-box', minWidth: 0 }}>
+        <div className="home-main" style={{ flex: 1, padding: '40px 40px 60px', boxSizing: 'border-box', minWidth: 0 }}>
 
           {hasQuery ? (
             <div>
@@ -346,7 +346,7 @@ export default function Home() {
 
       {/* Aligned with the left gutter's border, which sits directly under
           the header's logo cell — same vertical line, continuing down. */}
-      <ScrollCue itemCount={hasQuery ? projects.length : recentProjects.length} desktopColumns={4} left="90px" />
+      <ScrollCue itemCount={hasQuery ? projects.length : recentProjects.length} desktopColumns={4} left="90px" className="home-scroll-cue" />
     </div>
   )
 }

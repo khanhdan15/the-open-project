@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom'
 // transformed ancestor becomes the containing block for `position: fixed`
 // descendants — left un-portaled, the cue would silently stop tracking the
 // real viewport (same issue solved for the sticky brief action bar).
-export default function ScrollCue({ itemCount, active = true, desktopColumns = 3, mobileColumns = 2, left = '20px' }) {
+export default function ScrollCue({ itemCount, active = true, desktopColumns = 3, mobileColumns = 2, left = '20px', className }) {
   const [columns, setColumns] = useState(window.innerWidth <= 768 ? mobileColumns : desktopColumns)
   const [scrollProgress, setScrollProgress] = useState(0)
 
@@ -42,6 +42,7 @@ export default function ScrollCue({ itemCount, active = true, desktopColumns = 3
   return createPortal(
     <div
       aria-hidden="true"
+      className={className}
       style={{
         position: 'fixed', left, top: '50%', transform: 'translate(-50%, -50%)',
         display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 50,
