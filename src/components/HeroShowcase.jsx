@@ -53,6 +53,17 @@ const subscribePhone = (callback) => {
 const getIsPhone = () => window.matchMedia(PHONE_QUERY).matches
 const SPIN_SPEED = 0.05 // degrees per frame (~ one turn every 2 minutes)
 const TILT = -30 // degrees; how far we look down onto the ring
+// Entrance: the ring fades in (CSS), settles from a steeper tilt, and only
+// then starts turning, easing up to full speed.
+const INTRO_TILT = -14 // extra tilt at the start, eased away
+const INTRO_SETTLE = 1.6 // seconds for the tilt to settle
+const SPIN_DELAY = 0.7 // seconds before the ring starts turning
+const SPIN_RAMP = 2.2 // seconds to ease up to full speed
+// Cursor tilt: how far the whole ring leans toward the pointer.
+const LEAN_X = 9 // degrees forward/back (pointer up/down)
+const LEAN_Z = 7 // degrees sideways (pointer left/right)
+const smooth = (t) => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c) }
+const canHover = () => window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 // Ring radius and case width for a given hero width (and phone or not).
 function ringSize(width, phone) {
@@ -72,6 +83,9 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
   const spin = useRef(0)
   const target = useRef(null)
   const hovering = useRef(false)
+  const pointer = useRef({ x: 0, y: 0 }) // where the cursor is, -1..1
+  const lean = useRef({ x: 0, z: 0 }) // current (smoothed) lean
+  const openRef = useRef(false)
   const [openIndex, setOpenIndex] = useState(null)
   const isPhone = useSyncExternalStore(subscribePhone, getIsPhone, () => false)
   const caseCount = isPhone ? PHONE_CASE_COUNT : CASE_COUNT
@@ -103,17 +117,34 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
     return () => observer.disconnect()
   }, [])
 
-  // Turn the ring: slowly on its own, paused while hovered, and easing to a
+  // Turn the ring: fades in, settles, then turns slowly on its own (easing
+  // to a stop while hovered), leans toward the cursor, and eases to a
   // clicked case when one is open. Written straight to the element's style
   // every frame, so it never re-renders React.
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const start = performance.now()
+    let speed = 0 // 0..1 of SPIN_SPEED
     let frame
-    const tick = () => {
+    const tick = (now) => {
+      const t = (now - start) / 1000
+      const ramp = reduced ? 0 : smooth((t - SPIN_DELAY) / SPIN_RAMP)
+      const wanted = hovering.current ? 0 : ramp
+      speed += (wanted - speed) * 0.06
+
       if (target.current !== null) spin.current += (target.current - spin.current) * 0.08
-      else if (!hovering.current && !reduced) spin.current -= SPIN_SPEED
+      else spin.current -= SPIN_SPEED * speed
+
+      // Lean toward the pointer (flat again while a case is open, so it
+      // faces the viewer squarely).
+      const p = openRef.current || reduced ? { x: 0, y: 0 } : pointer.current
+      lean.current.x += (p.y * LEAN_X - lean.current.x) * 0.06
+      lean.current.z += (p.x * LEAN_Z - lean.current.z) * 0.06
+
+      const intro = reduced ? 0 : INTRO_TILT * (1 - smooth(t / INTRO_SETTLE))
       if (ringRef.current) {
-        ringRef.current.style.transform = `rotateX(${TILT}deg) rotateY(${spin.current.toFixed(3)}deg)`
+        ringRef.current.style.transform =
+          `rotateZ(${lean.current.z.toFixed(3)}deg) rotateX(${(TILT + intro + lean.current.x).toFixed(3)}deg) rotateY(${spin.current.toFixed(3)}deg)`
       }
       frame = requestAnimationFrame(tick)
     }
@@ -121,8 +152,18 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
     return () => cancelAnimationFrame(frame)
   }, [])
 
+  const handlePointerMove = (e) => {
+    if (!canHover()) return
+    const rect = sceneRef.current.getBoundingClientRect()
+    pointer.current = {
+      x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      y: ((e.clientY - rect.top) / rect.height) * 2 - 1,
+    }
+  }
+
   const close = () => {
     target.current = null
+    openRef.current = false
     setOpenIndex(null)
   }
 
@@ -136,6 +177,7 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
     const angle = (i * 360) / caseCount
     const delta = ((((-angle - spin.current) % 360) + 540) % 360) - 180
     target.current = spin.current + delta
+    openRef.current = true
     setOpenIndex(i)
   }
 
@@ -146,7 +188,8 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
         className="ring-scene"
         aria-hidden={searching}
         onMouseEnter={() => { hovering.current = true }}
-        onMouseLeave={() => { hovering.current = false }}
+        onMouseMove={handlePointerMove}
+        onMouseLeave={() => { hovering.current = false; pointer.current = { x: 0, y: 0 } }}
         onClick={close}
       >
         <div ref={ringRef} className={`ring${openIndex !== null ? ' has-open' : ''}`}>
