@@ -126,9 +126,23 @@ ${timelineNote ? `- ${timelineNote}` : ''}
 - Avoid flat, forgettable corporate scenarios (a generic bank tagline, a boilerplate SaaS logo). Even large, established clients should have a specific, textured story behind the ask: something with a real creative hook, not a template.
 - Do NOT prescribe visual direction (no "use bold colors" or "minimal aesthetic"). Let the designer interpret freely.
 - Make the summary feel written by the actual client, in their voice.
-- Write every section like a professional design brief document: short, plain-spoken bullet points, not paragraphs. Think "brief a designer would actually skim," not a pitch.
-- Keep every bullet to ONE short sentence, 14 words or fewer. No sub-clauses stitched together with commas or semicolons, if a bullet needs two ideas, split it into two bullets or cut one. If you can't say it in 14 words, you're including too much detail, cut it down.
-- Do not use em dashes (—) anywhere in your response. Use periods, commas, or colons instead, and make sure every sentence and bullet reads as a complete, natural thought.
+
+THE BRIEF SYSTEM. Build the brief in this order, so it reads like a story a designer wants to take on:
+1. Tension: who the client is and what just changed for them (a launch, a crisis, a comeback, a rival, a milestone). Every good brief starts with a reason it exists NOW.
+2. Challenge: one sharp line that names the creative problem, the thing that makes this hard and interesting.
+3. People: who it's for, described by behaviour and mindset, not just age.
+4. Make: concrete outputs a designer can picture, with quantity or spec.
+5. Win: what success looks like, observable and specific.
+6. Limits: real budget, time, format, or accessibility limits that shape choices.
+7. Twist: ONE unexpected creative constraint or opportunity that makes this brief exciting and different from any other (e.g. "Everything must work in a single ink colour", "The identity has to survive being hand-painted by staff"). It must be specific to this client's story, not a gimmick.
+
+Writing rules:
+- Every bullet MUST follow the pattern "Lead: detail". The lead is 1 to 3 words naming the key idea (e.g. "Logo lockup", "Deadline", "Resale crowd", "Hype"). The detail is a fragment of 8 words or fewer, not a full sentence.
+- The lead is what a designer reads first when skimming, so make it the most important noun, not a filler word like "Note" or "Also".
+- BE DIRECT. Every word must earn its place. Cut articles, filler, adjectives and hedging ("the client is", "in order to", "really", "aims to").
+- Write like notes on a sticky pad, e.g. "Deadline: 5 days", "Logo lockup: primary and stacked", "Resale crowd: 18 to 24, drop obsessed".
+- No paragraphs, no marketing fluff, no stacked clauses. Shorter is always better.
+- Do not use em dashes (—) anywhere. Use periods, commas, or colons instead.
 
 Return ONLY a valid JSON object with exactly these fields, no other text:
 {
@@ -137,14 +151,16 @@ Return ONLY a valid JSON object with exactly these fields, no other text:
   "client": "fictional but believable client name",
   "industry": "one industry sector",
   "format": "primary deliverable format (e.g. Visual Identity, Editorial Layout, Campaign, Typeface, Installation)",
-  "summary": "Exactly 1-2 short sentences, 35 words max total. Who the client is and what they need. Written as if from the client. No visual prescriptions.",
+  "summary": "ONE sentence, 20 words max. Who the client is and what they need. Written as if from the client. No visual prescriptions.",
+  "challenge": "The Challenge: ONE punchy line, 10 words max, often a 'How do we...' question. The creative problem at the heart of the brief.",
+  "twist": "The Twist: ONE line, 12 words max. The unexpected constraint or opportunity that makes this brief exciting.",
   "details": {
-    "Background": ["2 short bullets (14 words max each): who the client is and the context behind the project"],
-    "Goals": ["2 short bullets (14 words max each): what the project needs to achieve"],
-    "Target Audience": ["2 short bullets (14 words max each): who this is for"],
-    "Deliverables": ["2-3 short bullets (14 words max each): specific outputs the designer must produce"],
-    "Brand Tone": ["1-2 short bullets (14 words max each): the personality/voice the work should carry"],
-    "Constraints": ["2 short bullets (14 words max each): real-world limits such as budget, timeline, format, or accessibility"]
+    "Background": ["2 bullets max, 'Lead: detail' (Tension): who the client is and what just changed"],
+    "Goals": ["1-2 bullets, 'Lead: detail' (Win): what success looks like"],
+    "Target Audience": ["1-2 bullets, 'Lead: detail' (People): who this is for and how they behave"],
+    "Deliverables": ["2-3 bullets, 'Lead: detail' (Make): lead is the item name, detail is quantity, size, or use"],
+    "Brand Tone": ["1 bullet, 3 to 5 words only, no lead: the personality the work should carry"],
+    "Constraints": ["1-2 bullets, 'Lead: detail' (Limits): budget, timeline, format, or accessibility"]
   },
   "discipline": "${discipline}",
   "isChallenge": false,

@@ -6,8 +6,6 @@ import LoadingScreen from '../components/LoadingScreen'
 import { useUser } from '../context/UserContext'
 import { generateBrief } from '../lib/generateBrief'
 import { COLORS, TIMELINES } from '../lib/theme'
-import exportIcon from '../assets/export-icon.png'
-import downloadIcon from '../assets/download-icon.png'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -40,30 +38,31 @@ const MOCK_BRIEF = {
   industry: 'Fashion & Apparel',
   format: 'Capsule drop identity',
   summary: 'We are relaunching after a two year hiatus and need an identity that feels collectible, not seasonal.',
+  challenge: 'Make a comeback feel like a rare find.',
+  twist: 'Every tag is a numbered collectible card.',
   details: {
     Background: [
-      'The client is relaunching after a 2-year hiatus and is targeting a younger, resale-savvy audience.',
-      'The look should feel collectible, not seasonal.',
+      'Comeback: back after two years away.',
+      'New crowd: resale kids, not old fans.',
     ],
     Goals: [
-      'Build hype ahead of the drop without revealing the full collection.',
-      'Give the brand a distinct visual identity separate from its earlier run.',
+      'Hype: sell out in 48 hours.',
     ],
     'Target Audience': [
-      'Ages 18 to 24, active in sneaker and streetwear resale communities.',
-      'Follows drop culture, where scarcity and story matter more than price.',
+      'Resale crowd: 18 to 24, drop obsessed.',
+      'Values: story and scarcity over price.',
     ],
     Deliverables: [
-      'Capsule logo lockup.',
-      'Three product tags plus a packaging insert.',
-      'One launch teaser graphic.',
+      'Logo lockup: primary and stacked.',
+      'Product tags: three designs plus insert.',
+      'Teaser: one post, square and story.',
     ],
     'Brand Tone': [
-      'Raw, confident, and a little irreverent, avoiding the usual polished streetwear look.',
+      'Raw, confident, irreverent.',
     ],
     Constraints: [
-      'Tight turnaround: launch assets due within the week.',
-      'One consolidated round of feedback before final files.',
+      'Deadline: one week.',
+      'Feedback: one round only.',
     ],
   },
   discipline: 'Brand & Identity',
@@ -92,39 +91,63 @@ function Block({ label, children, overview = false, className = '', style, inner
   )
 }
 
-function Bullets({ items, prefix = '· ' }) {
-  const list = Array.isArray(items) ? items : items ? [items] : []
-  if (!list.length) return null
-  return list.map((item, i) => (
-    <p key={i} className="brief-block-line brief-focus-in">
-      {prefix}{item}
-    </p>
-  ))
+// Splits "Lead: detail" into its two parts, so the lead can be set bold and
+// the detail quieter. Only treats a short opener (5 words or fewer) as a
+// lead; anything else (older briefs, sentences with a colon later on) is
+// shown as plain text.
+function splitLead(text) {
+  const m = /^([^:]{2,40}):\s+(.+)$/s.exec(String(text))
+  if (m && m[1].trim().split(/\s+/).length <= 5) return [m[1].trim(), m[2]]
+  return [null, String(text)]
 }
 
-// Renders a black-on-transparent PNG as a mask so it inherits the button's
-// current text color — stays black by default, turns off-white on hover
-// along with the button text, without needing separate light/dark assets.
-function Icon({ src, width, height }) {
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        width, height,
-        flexShrink: 0,
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(${src})`,
-        maskImage: `url(${src})`,
-        WebkitMaskSize: 'contain',
-        maskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskPosition: 'center',
-      }}
-    />
-  )
+// Brief text as a readable list: each point on its own line with a small
+// bullet and a hanging indent. The lead word(s) are bold and near-black, the
+// detail is softer, so the page can be skimmed by its leads alone.
+// `label` turns it into a labelled line instead, e.g. "Voice".
+function Bullets({ items, label }) {
+  const list = Array.isArray(items) ? items : items ? [items] : []
+  if (!list.length) return null
+  return list.map((item, i) => {
+    const [lead, detail] = label ? [null, String(item)] : splitLead(item)
+    return (
+      <p key={i} className={`brief-block-line brief-focus-in${label ? '' : ' is-bullet'}`}>
+        {label && <strong className="brief-line-label">{label}</strong>}
+        {lead && <strong className="brief-line-lead">{lead}</strong>}
+        <span className={lead || label ? 'brief-line-detail' : undefined}>{detail}</span>
+      </p>
+    )
+  })
 }
+
+// A small titled group inside a block (e.g. "Make" / "Success looks like").
+function SubLabel({ children }) {
+  return <div className="brief-sublabel brief-focus-in">{children}</div>
+}
+
+// Action bar icons — one set, drawn in the site's icon language: thin
+// strokes with square (cut) ends and small gaps where strokes would meet,
+// a lighter, more crafted look than rounded, fully joined icons. Used on
+// desktop (with labels) and phones (icons only).
+const ICON_PROPS = {
+  viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8,
+  strokeLinecap: 'butt', strokeLinejoin: 'miter', 'aria-hidden': true,
+}
+const IconRegenerate = () => (
+  <svg {...ICON_PROPS}><path d="M18.8 14.6A7.4 7.4 0 1 1 15.3 5.4" /><path d="M15 2.6l3.3 2.6-2.6 3.3" /></svg>
+)
+const IconExport = () => (
+  <svg {...ICON_PROPS}><path d="M9.5 5.5h9v9" /><path d="M15.4 8.6L5.5 18.5" /></svg>
+)
+const IconSave = () => (
+  <svg {...ICON_PROPS}><path d="M12 4v8.4" /><path d="M7.4 10.6L12 15.2l4.6-4.6" /><path d="M5 19.5h14" /></svg>
+)
+const IconRemove = () => (
+  <svg {...ICON_PROPS}><path d="M6 6l4.4 4.4" /><path d="M13.6 13.6L18 18" /><path d="M18 6l-4.4 4.4" /><path d="M10.4 13.6L6 18" /></svg>
+)
+const IconSubmit = () => (
+  <svg {...ICON_PROPS}><path d="M1 12h15.2" /><path d="M16.6 6.4L22.2 12l-5.6 5.6" /></svg>
+)
 
 function ActionBar({ onExport, onSave, onRemove, isSaved, onSubmit, onRegenerate, showRegenerate }) {
   const [spinning, setSpinning] = useState(false)
@@ -140,24 +163,26 @@ function ActionBar({ onExport, onSave, onRemove, isSaved, onSubmit, onRegenerate
           className={`brief-action-btn brief-action-btn-icon${spinning ? ' spinning' : ''}`}
           onClick={handleRegenerate}
           title="Regenerate brief"
+          aria-label="Regenerate brief"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M21 12a9 9 0 1 1-3-6.7" />
-            <polyline points="21 3 21 9 15 9" />
-          </svg>
+          <IconRegenerate />
         </button>
       )}
-      <button className="brief-action-btn" onClick={onExport}>
-        Export <Icon src={exportIcon} width={18} height={10} />
+      <button className="brief-action-btn" onClick={onExport} title="Export" aria-label="Export">
+        <span className="brief-action-label">Export</span> <IconExport />
       </button>
       {isSaved ? (
-        <button className="brief-action-btn" onClick={onRemove}>remove</button>
+        <button className="brief-action-btn" onClick={onRemove} title="Remove from workplace" aria-label="Remove from workplace">
+          <span className="brief-action-label">remove</span> <IconRemove />
+        </button>
       ) : (
-        <button className="brief-action-btn" onClick={onSave}>
-          save to workplace <Icon src={downloadIcon} width={5} height={15} />
+        <button className="brief-action-btn" onClick={onSave} title="Save to workplace" aria-label="Save to workplace">
+          <span className="brief-action-label">save to workplace</span> <IconSave />
         </button>
       )}
-      <button className="brief-action-btn" onClick={onSubmit}>submit</button>
+      <button className="brief-action-btn" onClick={onSubmit} title="Submit your project" aria-label="Submit your project">
+        <span className="brief-action-label">submit</span> <IconSubmit />
+      </button>
     </div>
   )
 }
@@ -391,8 +416,11 @@ export default function Brief() {
                     <span className="brief-pill brief-focus-in">Industry: {brief.industry}</span>
                     <span className="brief-pill brief-focus-in">Format: {brief.format}</span>
                   </div>
+                  {brief.challenge && (
+                    <p className="brief-challenge brief-focus-in">{brief.challenge}</p>
+                  )}
                   <Bullets items={brief.details?.Background} />
-                  <Bullets items={brief.details?.['Brand Tone']} prefix="Voice: " />
+                  <Bullets items={brief.details?.['Brand Tone']} label="Voice" />
                   {sideDots.map((y, i) => (
                     <span key={`l${i}`} className="brief-block-dot" style={{ top: y, left: 10 }} />
                   ))}
@@ -414,7 +442,14 @@ export default function Brief() {
 
                   <Block label="Deliverables">
                     <Bullets items={brief.details?.Deliverables} />
+                    {brief.details?.Goals?.length > 0 && <SubLabel>Success looks like</SubLabel>}
                     <Bullets items={brief.details?.Goals} />
+                    {brief.twist && (
+                      <div className="brief-twist brief-focus-in">
+                        <span className="brief-twist-label">The twist</span>
+                        <p>{brief.twist}</p>
+                      </div>
+                    )}
                   </Block>
                 </div>
               </div>

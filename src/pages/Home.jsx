@@ -123,6 +123,8 @@ function PersonResultCard({ person, onClick }) {
   )
 }
 
+const BRIEFS_GENERATED_LABEL = '1,206+ briefs generated'
+
 export default function Home() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -223,7 +225,22 @@ export default function Home() {
       <Header />
 
       {/* Hero — title inside a turning ring of projects, search below it */}
-      <HeroShowcase projects={recentProjects} onOpenProject={goToProject} searching={hasQuery}>
+      <HeroShowcase
+        projects={recentProjects}
+        onOpenProject={goToProject}
+        searching={hasQuery}
+        ringCenter={
+          // Phones only (hidden on desktop via CSS). Fixed figure for now —
+          // briefs generated aren't counted anywhere yet; update it here.
+          <button
+            type="button"
+            className="hero-ring-badge"
+            onClick={(e) => { e.stopPropagation(); navigate('/new') }}
+          >
+            {BRIEFS_GENERATED_LABEL}
+          </button>
+        }
+      >
         {/* Headline. "good brief" is the call to action: a moving multi-colour
             gradient, clickable, takes visitors to the brief generator. */}
         <div className="hero-title-wrap">

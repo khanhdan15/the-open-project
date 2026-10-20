@@ -58,12 +58,14 @@ const TILT = -30 // degrees; how far we look down onto the ring
 function ringSize(width, phone) {
   if (phone) {
     // Keep the whole ring (radius both sides + a case) inside the screen.
-    return { radius: Math.min(170, width * 0.34), caseWidth: Math.max(40, Math.min(56, width * 0.12)) }
+    return { radius: Math.min(200, width * 0.4), caseWidth: Math.max(48, Math.min(70, width * 0.15)) }
   }
   return { radius: Math.min(540, width * 0.37), caseWidth: Math.max(66, Math.min(108, width * 0.068)) }
 }
 
-export default function HeroShowcase({ projects = [], onOpenProject, searching = false, children }) {
+// `ringCenter` (optional) is shown in the middle of the ring — used on phones
+// for a small badge (see .hero-ring-badge in index.css).
+export default function HeroShowcase({ projects = [], onOpenProject, searching = false, ringCenter, children }) {
   const heroRef = useRef(null)
   const sceneRef = useRef(null)
   const ringRef = useRef(null)
@@ -163,6 +165,7 @@ export default function HeroShowcase({ projects = [], onOpenProject, searching =
             </div>
           ))}
         </div>
+        {ringCenter}
       </div>
 
       <div className="hero-center">{children}</div>
