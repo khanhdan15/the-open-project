@@ -10,6 +10,7 @@ import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
 import { snapCardToImage } from '../lib/images'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -107,6 +108,7 @@ function OngoingCard({ savedBrief, onClick, index = 0 }) {
 }
 
 export default function Portfolio() {
+  usePageMeta({ title: 'My portfolio', noindex: true })
   const navigate = useNavigate()
   const { user, submittedProjects, savedBriefs, loading, updateAvatar, updateCV, removeSavedBrief } = useUser()
   const profile = user?.user_metadata || {}

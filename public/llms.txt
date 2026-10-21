@@ -1,0 +1,9 @@
+# Open Ruler
+
+> Open Ruler (openruler.design) is a free tool for designers. It generates realistic, client-style design briefs for practice, lets designers build a portfolio from the work they make, and share it with a community.
+
+## What you can do
+- Generate a design brief by discipline (brand & identity, packaging, editorial, UI/UX, motion, and more), industry and timeline: https://openruler.design/new
+- Browse work from the community: https://openruler.design/community
+- Take part in the weekly design challenge: https://openruler.design/weekly-challenge
+- Create a free account and a public portfolio: https://openruler.design/signup

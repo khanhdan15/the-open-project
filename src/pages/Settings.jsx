@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import { useUser } from '../context/UserContext'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -46,6 +47,7 @@ function SectionSep({ label }) {
 }
 
 export default function Settings() {
+  usePageMeta({ title: 'Settings', noindex: true })
   const navigate = useNavigate()
   const { user, loading, updateProfile } = useUser()
 

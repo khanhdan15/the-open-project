@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import Header from '../components/Header'
 import { useUser } from '../context/UserContext'
 import { generateChallengeBrief } from '../lib/generateBrief'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
@@ -22,6 +23,7 @@ function MetaCol({ label, value }) {
 }
 
 export default function WeeklyChallenge() {
+  usePageMeta({ title: 'Weekly design challenge', description: 'A new public design brief every week. Make it, post it, and see how other designers solved it.', path: '/weekly-challenge' })
   const navigate = useNavigate()
   const location = useLocation()
   const { addSavedBrief } = useUser()

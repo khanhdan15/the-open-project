@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
@@ -13,6 +14,7 @@ const COMMUNITY_CARDS = [
 ]
 
 export default function Community() {
+  usePageMeta({ title: 'Community work', description: 'Browse design projects made from Open Ruler briefs by designers around the world.', path: '/community' })
   const navigate = useNavigate()
   const [hoveredCard, setHoveredCard] = useState(null)
 

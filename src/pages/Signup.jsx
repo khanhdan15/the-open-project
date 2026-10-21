@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { supabase } from '../lib/supabase'
+import usePageMeta from '../lib/usePageMeta'
 
 export default function Signup() {
+  usePageMeta({ title: 'Sign up or log in', description: 'Create a free Open Ruler account to save briefs and build your design portfolio.', path: '/signup' })
   const { signUp, signIn } = useUser()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header'
 import GlowBorder from '../components/GlowBorder'
 import { DISCIPLINES, INDUSTRIES, TIMELINES } from '../lib/theme'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -58,6 +59,7 @@ function Pill({ label, selected, onClick, wide = false, index = 0 }) {
 // screen instead of three separate pages — pick everything, then hit the
 // arrow once to generate the brief.
 export default function NewBrief() {
+  usePageMeta({ title: 'Generate a design brief', description: 'Pick a discipline, industry and timeline and get a realistic, client-style design brief in seconds. Free practice briefs for designers.', path: '/new' })
   const location = useLocation()
   const navigate = useNavigate()
   const [discipline, setDiscipline] = useState(location.state?.folderName || null)

@@ -8,6 +8,7 @@ import { disciplineColor } from '../lib/theme'
 import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
 import { snapCardToImage } from '../lib/images'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -96,6 +97,13 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [tab, setTab] = useState('projects')
+  usePageMeta({
+    title: profile?.name ? `${profile.name}${profile.title ? `, ${profile.title}` : ''}` : 'Designer portfolio',
+    description: profile?.name
+      ? `${profile.name}'s design portfolio on Open Ruler${profile.bio ? `: ${String(profile.bio).slice(0, 120)}` : '.'}`
+      : undefined,
+    noindex: notFound,
+  })
 
   useEffect(() => {
     let cancelled = false

@@ -9,6 +9,7 @@ import Thumb from '../components/Thumb'
 import Masonry from '../components/Masonry'
 import HeroShowcase from '../components/HeroShowcase'
 import { snapCardToImage } from '../lib/images'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -126,6 +127,7 @@ function PersonResultCard({ person, onClick }) {
 const BRIEFS_GENERATED_LABEL = '1,206+ briefs generated'
 
 export default function Home() {
+  usePageMeta({ path: '/' })
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [searching, setSearching] = useState(false)

@@ -6,6 +6,7 @@ import ImageViewer from '../components/ImageViewer'
 import Thumb, { RevealImg } from '../components/Thumb'
 import { thumbUrl } from '../lib/images'
 import { useUser } from '../context/UserContext'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 const SERIF = '"BIZ UDMincho", serif'
@@ -167,6 +168,12 @@ export default function ProjectDetail() {
   // no byline shows there.
   const creatorSlug = project?.owner?.slug || profileSlug
   const creatorName = project?.owner?.name || location.state?.ownerName
+  usePageMeta({
+    title: project?.title || 'Project',
+    description: project?.title
+      ? `${project.title}${creatorName ? ` by ${creatorName}` : ''}, a design project on Open Ruler.`
+      : undefined,
+  })
 
   const handleDelete = async () => {
     if (!project?.id) return

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useUser } from '../context/UserContext'
+import usePageMeta from '../lib/usePageMeta'
 
 // Set a new password. Reached two ways:
 //  - from the "reset your password" email: Supabase's link signs the person
@@ -10,6 +11,7 @@ import { useUser } from '../context/UserContext'
 //  - from Settings → "Change password" while already signed in.
 // Either way there's a signed-in user, so updateUser() can set the password.
 export default function ResetPassword() {
+  usePageMeta({ title: 'Set a new password', noindex: true })
   const { user, loading } = useUser()
   const navigate = useNavigate()
   const [password, setPassword] = useState('')

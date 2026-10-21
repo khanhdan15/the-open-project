@@ -6,6 +6,7 @@ import LoadingScreen from '../components/LoadingScreen'
 import { useUser } from '../context/UserContext'
 import { generateBrief } from '../lib/generateBrief'
 import { COLORS, TIMELINES } from '../lib/theme'
+import usePageMeta from '../lib/usePageMeta'
 
 const HN = '"Hiragino Kaku Gothic Pro", "Hiragino Sans", -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif'
 
@@ -188,6 +189,7 @@ function ActionBar({ onExport, onSave, onRemove, isSaved, onSubmit, onRegenerate
 }
 
 export default function Brief() {
+  usePageMeta({ title: 'Your brief', noindex: true })
   const location = useLocation()
   const navigate = useNavigate()
   const { addSavedBrief, removeSavedBrief, addSubmittedProject } = useUser()
